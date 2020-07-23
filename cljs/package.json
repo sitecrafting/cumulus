@@ -1,0 +1,16 @@
+{
+  "devDependencies": {
+    "shadow-cljs": "^2.3.22"
+  },
+  "dependencies": {
+    "create-react-class": "^15.6.3",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  },
+  "scripts": {
+    "shadow": "yarn shadow-cljs",
+    "dev": "yarn shadow-cljs server start",
+    "build": "yarn shadow-cljs release main"
+  },
+  "version": "0.0.0"
+}

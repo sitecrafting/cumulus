@@ -1,0 +1,25 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["src"]
+
+ :dependencies
+ [[reagent "0.10.0"]
+  [re-frame "1.0.0"]
+  [cider/cider-nrepl "0.21.1"]]
+
+ :builds
+ {:main {:target :browser
+         :output-dir "dev/js"
+         :asset-path "/js"
+
+         :modules
+         {:main ;; <- becomes dev/js/main.js
+          {:entries [com.sitecrafting.cumulus.core]}}
+
+        ;; start a development http server on http://localhost:8020
+         :devtools
+         {:http-root "dev"
+          :http-port 8020}
+
+         :release {:compiler-options {:optimizations :advanced}
+                   :output-dir "dist"}}}}

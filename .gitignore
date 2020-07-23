@@ -1,0 +1,10 @@
+cljs/dev/js
+cljs/dist
+cljs/node_modules
+cljs/target
+/vendor
+
+.idea
+*.iml
+.nrepl-port
+.shadow-cljs

@@ -1,0 +1,19 @@
+{
+    "name": "sitecrafting/cumulus",
+    "description": "WordPress plugin for managing image crop sizes with Cloudinary Image CDN",
+    "type": "wordpress-plugin",
+    "minimum-stability": "dev",
+    "require": {
+        "cloudinary/cloudinary_php": "2.0.0-beta6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.2"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "SiteCrafting, Inc.",
+            "email": "hello@sitecrafting.com"
+        }
+    ]
+}
