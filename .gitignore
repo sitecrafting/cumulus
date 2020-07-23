@@ -3,6 +3,7 @@ cljs/dist
 cljs/node_modules
 cljs/target
 /vendor
+/wp
 
 .idea
 *.iml
