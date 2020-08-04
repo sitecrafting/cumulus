@@ -77,7 +77,6 @@ add_action('add_attachment', function(int $id) {
       'exception' => $err,
       'context'   => 'upload',
     ]);
-    debug($err->getMessage());
   }
 
   update_post_meta($id, 'cumulus_image', [

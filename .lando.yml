@@ -9,10 +9,47 @@ services:
       - composer install
       - ./scripts/setup-wordpress.sh
 
-  # TODO cljs service
+  cljs:
+    type: compose
+
+    services:
+      image: acobster/lando-clojure:shadow-cljs
+      command: shadow-cljs server start
+
+      ports:
+        # Shadow CLJS HTTP services - dashboard, Websocket, and REPL
+        - '9630:9630'
+        # Shadow CLJS socket REPL
+        - '8009:8009'
+        # Test/Dev build ports
+        - '8007:8007'
+        - '8008:8008'
+
+    run:
+      # Clean up old builds. This means a longer build time each time,
+      # but a cleaner slate and less of a chance for bugs.
+      - rm -rf .shadow-cljs
+      - yarn
 
 tooling:
   install:
     cmd: ./scripts/setup-wordpress.sh
     description: Install and configure WordPress
     service: appserver
+
+  shadow:
+    cmd: shadow-cljs
+    description: Run shadow-cljs commands
+    service: cljs
+
+  clean:
+    cmd: rm -rf .shadow-cljs node_modules dist/* .nrepl-port
+    description: Cleanup the dev environment, to restart with a blank slate
+    service: cljs
+
+proxy:
+  cljs:
+    # The long-running shadow-cljs compiler server:
+    # Use this to watch files for dev builds.
+    - shadow-cljs.cumulus.lndo.site:9630
+    - dev.cumulus.lndo.site:8008

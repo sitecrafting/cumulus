@@ -1,5 +1,7 @@
 # shadow-cljs - browser quickstart
 
+## TODO revise/generalize this README
+
 This is a minimum template you can use as the basis for CLJS projects intended to run in the browser.
 
 ## Required Software

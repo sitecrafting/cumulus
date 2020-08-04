@@ -16,10 +16,14 @@
          {:main ;; <- becomes dev/js/main.js
           {:entries [com.sitecrafting.cumulus.core]}}
 
-        ;; start a development http server on http://localhost:8020
+         ;; start a development http server on http://localhost:8008
+         ;; In a Lando environment, Lando forwards to this port
+         ;; for the dev proxy.
          :devtools
          {:http-root "dev"
-          :http-port 8020}
+          :http-port 8008}
 
          :release {:compiler-options {:optimizations :advanced}
-                   :output-dir "dist"}}}}
+                   :output-dir "dist"}}}
+
+ :nrepl {:port 8009}}

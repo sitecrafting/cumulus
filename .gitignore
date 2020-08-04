@@ -1,10 +1,11 @@
-cljs/dev/js
-cljs/dist
-cljs/node_modules
-cljs/target
+/dev/js
+/dist
+/node_modules
+/target
 /vendor
 /wp
 
+.calva
 .idea
 *.iml
 .nrepl-port
