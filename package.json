@@ -4,6 +4,7 @@
   },
   "dependencies": {
     "create-react-class": "^15.6.3",
+    "cropperjs": "^1.5.7",
     "react": "^16.13.1",
     "react-dom": "^16.13.1"
   },
