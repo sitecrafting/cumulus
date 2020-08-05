@@ -3,13 +3,27 @@
 <head>
   <title>Cumulus Crop UI</title>
   <meta charset="utf-8">
+  <link rel="stylesheet" href="/css/cropper.min.css">
   <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/dev.css">
 </head>
 <body>
-<h1>Cumulus</h1>
-<div id="cumulus-crop-ui"></div>
 
-<script src="/js/main.js"></script>
-<script>com.sitecrafting.cumulus.core.init();</script>
+  <main>
+    <h1>Cumulus</h1>
+    <img src="https://res.cloudinary.com/sean-dean/image/upload/v1596590505/sc-test/heron.jpg" id="cropper-img">
+    <div id="cumulus-crop-ui"></div>
+  </main>
+
+  <script>
+    var CUMULUS_CONFIG = {
+      bucket: 'sean-dean',
+      version: 'v1596590505',
+      folder: 'sc-test',
+      filename: 'heron.jpg',
+    };
+  </script>
+  <script src="/js/main.js"></script>
+  <script>com.sitecrafting.cumulus.core.init();</script>
 </body>
 </html>
