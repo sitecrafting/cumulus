@@ -24,6 +24,6 @@
           :http-port 8008}
 
          :release {:compiler-options {:optimizations :advanced}
-                   :output-dir "dist"}}}
+                   :output-dir "dist/js"}}}
 
  :nrepl {:port 8009}}

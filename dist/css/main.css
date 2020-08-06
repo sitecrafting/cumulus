@@ -1,0 +1,10 @@
+.cropper-container {
+  display: flex;
+}
+.cropper-container img {
+  display: block;
+  max-width: 100%;
+}
+img {
+  max-width: 100%;
+}
