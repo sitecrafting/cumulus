@@ -53,3 +53,4 @@ proxy:
     # Use this to watch files for dev builds.
     - shadow-cljs.cumulus.lndo.site:9630
     - dev.cumulus.lndo.site:8008
+    - test.cumulus.lndo.site:8007

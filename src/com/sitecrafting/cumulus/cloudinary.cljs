@@ -20,13 +20,9 @@
                                params)))))
 
 
-(defn crop->url [{:keys [bucket folder filename x y width height #_version]}]
+(defn crop->url [{:keys [bucket folder filename #_version] :as params}]
   (let [segments (conj [bucket "image/upload"]
-                       (params->url-segments {;:fallback version ;; TODO do we ever need this?
-                                              :x x
-                                              :y y
-                                              :w width
-                                              :h height})
+                       (params->url-segments (select-keys params [:x :y :w :h]))
                        folder
                        filename)]
     (str "https://res.cloudinary.com/" (join "/" (filter seq segments)))))

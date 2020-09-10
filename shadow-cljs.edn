@@ -1,6 +1,6 @@
 ;; shadow-cljs configuration
 {:source-paths
- ["src"]
+ ["src" "test"]
 
  :dependencies
  [[reagent "0.10.0"]
@@ -24,6 +24,12 @@
           :http-port 8008}
 
          :release {:compiler-options {:optimizations :advanced}
-                   :output-dir "dist/js"}}}
+                   :output-dir "dist/js"}}
+  :test {:target :browser-test
+         :test-dir "dev/js/test"
+         :asset-path "/js/test"
+         :ns-regexp "-test$"
+         :devtools {:http-port 8007
+                    :http-root "dev/js/test"}}}
 
  :nrepl {:port 8009}}

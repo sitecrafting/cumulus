@@ -8,7 +8,7 @@
    [re-frame.core :as rf]))
 
 ;; On mount, we'll store the instance of our Cropper in here,
-;; so we can refer to it later 
+;; so we can refer to it later
 (def !cropper (atom nil))
 
 (comment
@@ -34,8 +34,8 @@
     :aspect-ratio (/ 16 9)
     :crop-params {:x 0
                   :y 0
-                  :width 0
-                  :height 0}}))
+                  :w 0
+                  :h 0}}))
 
 ;; Image info
 
@@ -81,10 +81,10 @@
                                       (rf/dispatch [::set-crop-params
                                                     {:x (js/Math.round (.-x params))
                                                      :y (js/Math.round (.-y params))
-                                                     :width (js/Math.round (.-width params))
-                                                     :height (js/Math.round (.-height params))}])))
+                                                     :w (js/Math.round (.-width params))
+                                                     :h (js/Math.round (.-height params))}])))
                             :aspectRatio aspect-ratio}))))}]))
-      
+
       :component-did-update
       (fn []
         (.setAspectRatio @!cropper @(rf/subscribe [::aspect-ratio])))})))
