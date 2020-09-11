@@ -73,7 +73,6 @@ add_action('add_attachment', function(int $id) {
   if (!$path) {
     return;
   }
-  debug(wp_get_attachment_metadata($id));
 
   static $uploader;
   $uploader = $uploader ?? new UploadApi();
