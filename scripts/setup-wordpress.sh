@@ -46,7 +46,7 @@ EOF
   else
     # install WordPress
     wp core install \
-      --url='http://cumulus.lndo.site' \
+      --url='https://cumulus.lndo.site' \
       --title='Cumulus' \
       --admin_user='cumulus' \
       --admin_password='cumulus' \
