@@ -20,9 +20,52 @@
                                params)))))
 
 
-(defn crop->url [{:keys [bucket folder filename #_version] :as params}]
+(defn params->url [{:keys [bucket folder filename crop #_version]}]
   (let [segments (conj [bucket "image/upload"]
-                       (params->url-segments (select-keys params [:x :y :w :h]))
+                       (params->url-segments crop)
                        folder
                        filename)]
     (str "https://res.cloudinary.com/" (join "/" (filter seq segments)))))
+
+(defn crop->url [params]
+  (params->url (merge params {:crop (select-keys params [:x :y :w :h])})))
+
+(defn scale->url [params]
+  (let [scaling-strategy (:c params "lfill")
+        crop (merge (select-keys params [:w :h])
+                    {:c scaling-strategy})]
+    (params->url (merge params {:crop crop}))))
+
+
+(comment
+
+  (params->url-segments {:w 150 :h 100 :c "scale"})
+  (params->url-segments {:w 150 :h 100 :c "lfill"})
+
+  (crop->url {:bucket "sean-dean"
+              :folder "sc-test"
+              :x 450
+              :y 500
+              :w 2000
+              :h 1650
+              :filename "heron.jpg"})
+  ;; => "https://res.cloudinary.com/sean-dean/image/upload/x_450,y_500,w_2000,h_1650,c_crop/sc-test/heron.jpg"
+
+  (scale->url {:bucket "sean-dean"
+               :folder "sc-test"
+               :w 2000
+               :h 1650
+               :c "lfill"
+               :filename "heron.jpg"})
+  ;; => "https://res.cloudinary.com/sean-dean/image/upload/w_2000,h_1650,c_lfill/sc-test/heron.jpg"
+
+  (scale->url {:bucket "sean-dean"
+               :folder "sc-test"
+               :w 2000
+               :h 1650
+               :c "fit"
+               :filename "heron.jpg"})
+  ;; => "https://res.cloudinary.com/sean-dean/image/upload/w_2000,h_1650,c_fit/sc-test/heron.jpg"
+
+  ;;
+  )
