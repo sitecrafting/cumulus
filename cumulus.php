@@ -22,6 +22,8 @@ define('CUMULUS_VIEW_DIR', __DIR__ . '/views/');
 
 /**
  * Configure global Cloudinary settings.
+ *
+ * TODO implement a settings panel where admins can do this on their own.
  */
 add_action('init', function() {
   $cloud  = get_option('cumulus_cloud_name');
@@ -75,9 +77,10 @@ add_action('add_attachment', function(int $id) {
   }
 
   static $uploader;
-  $uploader = $uploader ?? new UploadApi();
+  $result = [];
 
   try {
+    $uploader = $uploader ?? new UploadApi();
     $result = $uploader->upload($path, apply_filters('cumulus/upload_options', [
       'public_id' => basename($path),
     ]));
@@ -86,16 +89,23 @@ add_action('add_attachment', function(int $id) {
       'exception' => $err,
       'context'   => 'upload',
     ]);
+  } catch (InvalidArgumentException $err) {
+    do_action('cumulus/api_error', $err->getMessage(), [
+      'exception' => $err,
+      'context'   => 'upload',
+    ]);
   }
 
-  update_post_meta($id, 'cumulus_image', [
-    'cloudinary_id' => $result['public_id'],
-    'sizes'  => [
-      'full' => $result['secure_url'],
-      'home-hero' => $result['secure_url'],
-    ],
-    'cloudinary_data' => $result,
-  ]);
+  if ($result) {
+    update_post_meta($id, 'cumulus_image', [
+      'cloudinary_id'   => $result['public_id'],
+      'sizes'           => [
+        'full'          => $result['secure_url'],
+        'home-hero'     => $result['secure_url'],
+      ],
+      'cloudinary_data' => $result,
+    ]);
+  }
 }, 10);
 
 /**
