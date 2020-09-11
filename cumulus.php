@@ -20,6 +20,9 @@ define('CUMULUS_JS_DIR', __DIR__ . '/cljs/dist/');
 define('CUMULUS_VIEW_DIR', __DIR__ . '/views/');
 
 
+/**
+ * Configure global Cloudinary settings.
+ */
 add_action('init', function() {
   $cloud  = get_option('cumulus_cloud_name');
   $key    = get_option('cumulus_api_key');
@@ -38,6 +41,10 @@ add_action('init', function() {
 });
 
 
+/**
+ * The main event. Hook into the attachment src for a given size and
+ * return the Cloudinary-rendered cropped/scaled image URL instead.
+ */
 add_filter('wp_get_attachment_image_src', function($src, $id, $size) {
   // Persist a mapping of attachment IDs to crop URLs, to save
   // database calls
@@ -58,6 +65,9 @@ add_filter('wp_get_attachment_image_src', function($src, $id, $size) {
 }, 10, 3);
 
 
+/**
+ * Upload to Cloudinary backend when a new Attachment is added.
+ */
 add_action('add_attachment', function(int $id) {
   $path = get_attached_file($id);
   if (!$path) {
@@ -89,6 +99,9 @@ add_action('add_attachment', function(int $id) {
   ]);
 }, 10);
 
+/**
+ * Dynamically set Cloudinary upload params when a new Attachment is uploaded.
+ */
 add_filter('cumulus/upload_options', function(array $options) {
   // TODO Deal with extensions in a less hacky way
   $extensions = ['/\.jpeg$/', '/\.jpg$/', '/\.png$/'];
@@ -104,12 +117,19 @@ add_filter('cumulus/upload_options', function(array $options) {
   return $options;
 });
 
+/**
+ * Generic filter for rendering content partials.
+ */
 add_action('cumulus/render', function($file, $data) {
   ob_start();
   include CUMULUS_VIEW_DIR . $file;
   return ob_get_clean();
 }, 10, 2);
 
+/**
+ * Hook into the WordPress attachment media modal and inject the code we
+ * need on the frontend to bootstrap the Crop UI.
+ */
 add_action('print_media_templates', function() {
   echo apply_filters('cumulus/render', 'media-templates.php', [
     'customize_crops' => __('Customize Image Crops'),
@@ -117,6 +137,9 @@ add_action('print_media_templates', function() {
   ]);
 });
 
+/**
+ * Enqueue Crop UI JS.
+ */
 add_action('admin_enqueue_scripts', function() {
   wp_enqueue_script('cumulus-crop-ui-js', CUMULUS_JS_DIR . 'main.js');
 });
