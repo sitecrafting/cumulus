@@ -47,6 +47,11 @@ tooling:
     description: Cleanup the dev environment, to restart with a blank slate
     service: cljs
 
+  debug:
+    cmd: touch /app/wp/wp-content/debug.log && tail -f /app/wp/wp-content/debug.log
+    description: Tail the WP_DEBUG log
+    service: appserver
+
 proxy:
   cljs:
     # The long-running shadow-cljs compiler server:
