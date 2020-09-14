@@ -120,6 +120,13 @@ add_action('add_attachment', function(int $id) {
         $result['format'] // extension
       );
 
+      $url = apply_filters("cumulus/crop_url/$size", $url, [
+        'size'       => $size,
+        'dimensions' => $registeredSizes[$size],
+        'cloud_name' => $cloud,
+        'response'   => $result,
+      ]);
+
       return array_merge($sizes, [
         $size => $url,
       ]);
