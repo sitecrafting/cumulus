@@ -68,6 +68,31 @@ add_filter('wp_get_attachment_image_src', function($src, $id, $size) {
 
 
 /**
+ * When the Attachment Detail modal opens, we need to fetch additional
+ * data for the attachment being cropped. To do that, we call this endpoint.
+ */
+add_action('rest_api_init', function() {
+  register_rest_route('cumulus/v1', '/attachment/(?P<id>\d++)', [
+    'methods'  => 'GET',
+    'callback' => function($req) {
+      $id = $req->get_param('id');
+
+      $meta = get_post_meta($id, 'cumulus_image', true);
+
+      if (!$meta) {
+        return [];
+      }
+
+      return [
+        'attachment_id' => $id,
+        'cumulus_image' => $meta,
+      ];
+    },
+  ]);
+});
+
+
+/**
  * Upload to Cloudinary backend when a new Attachment is added.
  */
 add_action('add_attachment', function(int $id) {
