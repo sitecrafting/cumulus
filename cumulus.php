@@ -83,9 +83,15 @@ add_action('rest_api_init', function() {
         return [];
       }
 
+      $cloudinaryData = $meta['cloudinary_data'];
+
       return [
         'attachment_id' => $id,
-        'cumulus_image' => $meta,
+        'version'       => $cloudinaryData['version'],
+        // NOTE: public_id also includes the folder to which the image was uploaded, if any.
+        'filename'      => $cloudinaryData['public_id'] . '.' . $cloudinaryData['format'],
+        'full_url'      => $meta['cloudinary_data']['secure_url'],
+        'detail'        => $meta,
       ];
     },
   ]);
@@ -101,6 +107,8 @@ add_action('add_attachment', function(int $id) {
     return;
   }
 
+  $uploadFolder = get_option('cumulus_upload_folder') ?: null;
+
   static $uploader;
   $result = [];
 
@@ -108,6 +116,7 @@ add_action('add_attachment', function(int $id) {
     $uploader = $uploader ?? new UploadApi();
     $result = $uploader->upload($path, apply_filters('cumulus/upload_options', [
       'public_id' => basename($path),
+      'folder'    => $uploadFolder,
     ]));
   } catch (ApiError $err) {
     do_action('cumulus/api_error', $err->getMessage(), [
