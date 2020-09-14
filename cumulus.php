@@ -16,7 +16,7 @@ use Cloudinary\Api\Upload\UploadApi;
 use Cloudinary\Configuration\Configuration;
 
 
-define('CUMULUS_JS_DIR', __DIR__ . '/cljs/dist/');
+define('CUMULUS_JS_DIR', __DIR__ . '/dist/js/');
 define('CUMULUS_VIEW_DIR', __DIR__ . '/views/');
 
 
@@ -150,5 +150,20 @@ add_action('print_media_templates', function() {
  * Enqueue Crop UI JS.
  */
 add_action('admin_enqueue_scripts', function() {
-  wp_enqueue_script('cumulus-crop-ui-js', CUMULUS_JS_DIR . 'main.js');
+  wp_enqueue_script('cumulus-crop-ui-js', plugin_dir_url(__FILE__) . 'dist/js/main.js');
+
+  $registeredSizes = wp_get_registered_image_subsizes();
+
+  $sizes = array_map(function($key, $dimensions) {
+    return [
+      'size_name' => $key,
+      'width'     => $dimensions['width'],
+      'height'    => $dimensions['height'],
+    ];
+  }, array_keys($registeredSizes), array_values($registeredSizes));
+
+  wp_localize_script('cumulus-crop-ui-js', 'CUMULUS_CONFIG', [
+    'bucket'  => get_option('cumulus_cloud_name'),
+    'sizes'   => $sizes,
+  ]);
 });
