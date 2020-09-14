@@ -97,12 +97,37 @@ add_action('add_attachment', function(int $id) {
   }
 
   if ($result) {
+    $registeredSizes = wp_get_registered_image_subsizes();
+
+    $cloud   = get_option('cumulus_cloud_name');
+
+    $sizes = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes, $result, $cloud) {
+      // Avoid crops of zero width or height.
+      $width  = $registeredSizes[$size]['width'];
+      $height = $registeredSizes[$size]['height'];
+      $dimensionParams = implode(',', array_filter([
+        ($width ? "w_{$width}" : ''),
+        ($height ? "h_{$height}" : ''),
+        'c_lfill',
+      ]));
+
+      // Compute the scale (lfill) URL for this size.
+      $url = sprintf(
+        'https://res.cloudinary.com/%s/image/upload/%s/%s.%s',
+        $cloud,
+        $dimensionParams,
+        $result['public_id'], // filename
+        $result['format'] // extension
+      );
+
+      return array_merge($sizes, [
+        $size => $url,
+      ]);
+    }, []);
+
     update_post_meta($id, 'cumulus_image', [
       'cloudinary_id'   => $result['public_id'],
-      'sizes'           => [
-        'full'          => $result['secure_url'],
-        'home-hero'     => $result['secure_url'],
-      ],
+      'sizes'           => $sizes,
       'cloudinary_data' => $result,
     ]);
   }
