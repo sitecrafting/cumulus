@@ -17,6 +17,7 @@ use Cloudinary\Configuration\Configuration;
 
 
 define('CUMULUS_JS_DIR', __DIR__ . '/dist/js/');
+define('CUMULUS_CSS_DIR', __DIR__ . '/dist/css/');
 define('CUMULUS_VIEW_DIR', __DIR__ . '/views/');
 
 
@@ -91,6 +92,8 @@ add_action('rest_api_init', function() {
         // NOTE: public_id also includes the folder to which the image was uploaded, if any.
         'filename'      => $cloudinaryData['public_id'] . '.' . $cloudinaryData['format'],
         'full_url'      => $meta['cloudinary_data']['secure_url'],
+        'full_width'    => $meta['cloudinary_data']['width'],
+        'full_height'   => $meta['cloudinary_data']['height'],
         'detail'        => $meta,
       ];
     },
@@ -170,6 +173,7 @@ add_action('add_attachment', function(int $id) {
       'cloudinary_id'   => $result['public_id'],
       'sizes'           => $sizes,
       'cloudinary_data' => $result,
+      'custom_crops'    => [],
     ]);
   }
 }, 10);
@@ -216,7 +220,13 @@ add_action('print_media_templates', function() {
  * Enqueue Crop UI JS.
  */
 add_action('admin_enqueue_scripts', function() {
-  wp_enqueue_script('cumulus-crop-ui-js', plugin_dir_url(__FILE__) . 'dist/js/main.js');
+  $file = CUMULUS_JS_DIR . 'main.js';
+  wp_enqueue_script(
+    'cumulus-crop-ui-js',
+    plugin_dir_url(__FILE__) . 'dist/js/main.js',
+    [],
+    filemtime($file)
+  );
 
   $registeredSizes = wp_get_registered_image_subsizes();
 
@@ -232,4 +242,8 @@ add_action('admin_enqueue_scripts', function() {
     'bucket'  => get_option('cumulus_cloud_name'),
     'sizes'   => $sizes,
   ]);
+
+  $css = CUMULUS_JS_DIR . 'main.js';
+  wp_enqueue_style('cropper-css', plugin_dir_url(__FILE__) . 'dist/css/cropper.min.css', [], '1.5.7');
+  wp_enqueue_style('cumulus-css', plugin_dir_url(__FILE__) . 'dist/css/main.css', ['cropper-css'], filemtime($css));
 });

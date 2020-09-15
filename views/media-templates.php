@@ -14,23 +14,52 @@ jQuery(function($){
   }
 
   /**
-   * Do a bunch of hack jQuery stuff to render the Edit Image Crops UI
+   * Do a bunch of hack jQuery stuff to get the attachment data we need
+   * and render the Edit Image Crops UI.
    */
   function _initCumulusCropsUi() {
-    var $editCropsBtn = $('.cumulus-edit-crops-btn');
+    var $customizeImageCropsBtn = $('.cumulus-edit-crops-btn');
 
-    if ($editCropsBtn.length) {
+    // Check if the current Customize Image Crops button corresponds to the
+    // image currently being viewed in the modal
+    if ($customizeImageCropsBtn.length) {
       // We're already done.
       return;
     }
 
-    $editCropsBtn = $('<button type="button"></button>')
+    $customizeImageCropsBtn = $('<button type="button"></button>')
       .addClass('button cumulus-edit-crops-btn')
       .text('<?= $data['customize_crops'] ?>');
 
-    $('.attachment-actions').append($editCropsBtn);
+    var $actions = $('.attachment-actions').first();
 
-    $editCropsBtn.click(function() {
+    // Get the attachment ID from the URL
+    if (location.search) {
+      var matches = /item=([0-9]+)/.exec(location.search);
+      if (matches.length > 1) {
+        // TODO for some reason it's sending multiple requests??
+        $.ajax('/wp-json/cumulus/v1/attachment/' + matches[1], {
+          success: function(data) {
+            // Check again in case the UI was already loaded.
+            if ($('.cumulus-edit-crops-btn').length) {
+              return;
+            }
+
+            // Enrich the UI config with attachment-specific data.
+            CUMULUS_CONFIG.attachment_id = data.attachment_id;
+            CUMULUS_CONFIG.full_url      = data.full_url;
+            CUMULUS_CONFIG.full_width    = data.full_width;
+            CUMULUS_CONFIG.full_height   = data.full_height;
+            CUMULUS_CONFIG.filename      = data.filename;
+            CUMULUS_CONFIG.version       = data.version; // TODO do we need this?
+
+            $actions.append($customizeImageCropsBtn);
+          },
+        });
+      }
+    }
+
+    $customizeImageCropsBtn.click(function() {
       var $modal = $(this).closest('.media-modal-content');
       $modal.addClass('media-modal-content--original').hide();
 

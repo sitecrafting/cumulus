@@ -47,8 +47,7 @@
    (let [config (keywordize-keys config)
          sizes (:sizes config)
          current-size (first sizes)
-         {:keys [size_name width height]} current-size]
-     (js/console.log size_name width height)
+         {:keys [width height]} current-size]
      {:img-config config
       :current-size current-size
       :aspect-ratio (/ width height)
@@ -85,11 +84,14 @@
                                    :w (js/Math.round (.-width params))
                                    :h (js/Math.round (.-height params))}])))
           :aspectRatio (when (> height 0) (/ width height))
+          ;; TODO enforce minimums based on actual current-size
           :minCropBoxWidth width
           :minCropBoxHeight height
+          :background false
           :scalable false
           :movable false
-          :rotatable false})))
+          :rotatable false
+          :zoomable false})))
 
 ;; Aspect Ratio
 
@@ -132,9 +134,10 @@
     (r/create-class
      {:reagent-render
       (fn []
-        [:div.cropper-container
+        [:div
          {:ref (fn [elem]
                  (reset! !ref elem)
+                 ;; TODO reset this whenever current-size changes
                  (when-let [img (js/document.getElementById "cropper-img")]
                    (reset! !cropper (Cropper. img @(rf/subscribe [::cropper-js-params])))))}])
 
@@ -144,10 +147,10 @@
 
 (defn crop-ui []
   (let [img-url @(rf/subscribe [::cloudinary-url])
-        current-size @(rf/subscribe [::current-size])
-        config @(rf/subscribe [::img-config])]
+        {:keys [width height]} @(rf/subscribe [::current-size])
+        {:keys [sizes full_url full_width full_height]} @(rf/subscribe [::img-config])]
     [:div.cumulus-crop-ui
-     [:nav [:ul.crop-sizes
+     [:nav [:ul.cumulus-crop-sizes
             (map (fn [{:keys [size_name] :as size}]
                    ^{:key size_name}
                    [:li [:a {:href "#"
@@ -155,8 +158,46 @@
                                          (.preventDefault e)
                                          (rf/dispatch [::update-current-size size]))}
                          (size-name->label size_name)]])
-                 (:sizes config))]]
-     [:pre (js/JSON.stringify (clj->js current-size))]
-     [:img#cropper-img {:src (:full_url config)}]
-     [cropperjs]
-     [:a {:target "_blank" :href img-url} img-url]]))
+                 sizes)]]
+
+     [:div.stack
+      [:div.columns
+       [:div.col-60
+        ;; By putting the image in here, we tell CropperJS to inject its UI here.
+        [:img#cropper-img {:src full_url}]
+        [cropperjs]]
+
+       [:div.col-40
+        [:aside.cumulus-controls.stack
+         [:h3 "Resize Image"]
+
+         [:section.cumulus-dimensions
+          ;; TODO responsive
+          "Original dimensions: " full_width " x " full_height
+          [:a.cumulus-img-link {:href full_url
+                                :target "_blank"}
+           "View full size image"]]
+
+         [:section.cumulus-dimensions "New dimensions:"
+          ;; TODO ditto
+          [:a.cumulus-img-link {:href img-url
+                                :target "_blank"}
+           "View resized image"]
+
+          [:p.description "Image can only scale down from the original dimensions."]
+          [:div
+           [:span.cumulus-dimension {:data-label "w"} width]
+           ;; TODO svg lock
+           [:span.cumulus-dimension {:data-label "h"} height]]]
+
+         [:section.cumulus-resize-options
+          [:h3 "Other Image Options"]
+          [:ul
+           [:li "Crop"]
+           [:li "Flip horizontal"]
+           [:li "Flip vertical"]]]
+
+         [:footer
+          [:span.cumulus-control
+           [:button {:on-click #(rf/dispatch [::save!])} "Save"]
+           [:button {:on-click #(rf/dispatch [::cancel])} "Cancel"]]]]]]]]))
