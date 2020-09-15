@@ -10,7 +10,13 @@
 <body>
 
   <main>
-    <h1>Cumulus</h1>
+    <header>
+      <h1>Cumulus</h1>
+      <nav>
+        <a href="#" data-nav="prev">Previous Image</a>
+        <a href="#" data-nav="next">Next Image</a>
+      </nav>
+    </header>
     <div id="cumulus-crop-ui"></div>
   </main>
 
@@ -51,6 +57,21 @@
     };
   </script>
   <script src="/js/main.js"></script>
-  <script>com.sitecrafting.cumulus.core.init();</script>
+  <script>
+    com.sitecrafting.cumulus.core.init()
+
+    Array.from(document.querySelectorAll('[data-nav]')).forEach(a => {
+      a.addEventListener('click', (e) => {
+        switch (e.target.dataset.nav) {
+          case 'prev':
+            console.log("PREV IMAGE");
+            break;
+          case 'next':
+            console.log("NEXT IMAGE");
+            break;
+        }
+      })
+    })
+  </script>
 </body>
 </html>

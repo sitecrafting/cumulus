@@ -1,0 +1,23 @@
+body {
+  width: 1000em;
+  max-width: 95%;
+  margin: 1em auto;
+}
+
+main > header {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 3em;
+  padding-bottom: 3em;
+  border-bottom: 1px solid lightgrey;
+
+  font-family: sans-serif;
+  text-transform: uppercase;
+}
+
+main > header > h1 {
+  margin: 0;
+}
+main > header > nav {
+  margin-top: 1em;
+}
