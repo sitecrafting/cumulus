@@ -11,7 +11,7 @@
   "scripts": {
     "shadow": "yarn shadow-cljs",
     "dev": "yarn shadow-cljs server start",
-    "build": "yarn shadow-cljs release main"
+    "build": "yarn shadow-cljs release main && rsync -avh --exclude=dev.css dev/css/ dist/css/"
   },
   "version": "0.0.0"
 }
