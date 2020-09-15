@@ -15,7 +15,7 @@
                    ;; Set a default crop strategy of "c_crop"
                    (assoc :c (:c params "crop")))]
     (join "," (filter seq (map (fn [[k v]]
-                                 (when v
+                                 (when (and v (not= 0 v))
                                    (str (name k) "_" v)))
                                params)))))
 
