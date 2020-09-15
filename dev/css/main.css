@@ -57,3 +57,9 @@
   margin-right: 2em;
   border: 1px solid black;
 }
+
+
+/* Override WP styles to hide incompatible elements */
+.attachment-actions .edit-attachment {
+  display: none;
+}
