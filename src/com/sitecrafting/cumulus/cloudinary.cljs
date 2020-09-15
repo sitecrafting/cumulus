@@ -20,21 +20,25 @@
                                params)))))
 
 
-(defn params->url [{:keys [bucket folder filename crop #_version]}]
+;; TODO we may need version if we need to fall back to the full URL.
+(defn params->url [{:keys [bucket folder filename transforms #_version]}]
   (let [segments (conj [bucket "image/upload"]
-                       (params->url-segments crop)
+                       (join "/" (map params->url-segments transforms))
                        folder
                        filename)]
     (str "https://res.cloudinary.com/" (join "/" (filter seq segments)))))
 
 (defn crop->url [params]
-  (params->url (merge params {:crop (select-keys params [:x :y :w :h])})))
+  (let [manual-crop (select-keys params [:x :y :w :h])
+        [w h] (:target-size params)
+        scale {:w w :h h :c "scale"}]
+    (params->url (merge params {:transforms [manual-crop scale]}))))
 
 (defn scale->url [params]
   (let [scaling-strategy (:c params "lfill")
         crop (merge (select-keys params [:w :h])
                     {:c scaling-strategy})]
-    (params->url (merge params {:crop crop}))))
+    (params->url (merge params {:transforms [crop]}))))
 
 
 (comment
