@@ -23,6 +23,9 @@
 .stack > * + * {
   margin-top: var(--cumulus-gutter);
 }
+.stack > .stack-exception {
+  margin-top: 0;
+}
 
 .cumulus-crop-ui {
   width: 1000em;
@@ -45,16 +48,12 @@
 }
 
 .cumulus-dimensions {
-  position: relative;
-}
-.cumulus-img-link {
-  position: absolute;
-  right: 0;
+  display: flex;
+  justify-content: space-between;
 }
 .cumulus-dimension {
   display: inline-block;
   padding: 0.3em;
-  margin-right: 2em;
   border: 1px solid black;
 }
 

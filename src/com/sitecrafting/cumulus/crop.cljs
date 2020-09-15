@@ -83,7 +83,7 @@
                                    :w (js/Math.round (.-width params))
                                    :h (js/Math.round (.-height params))}])))
           :aspectRatio (when (> height 0) (/ width height))
-          ;; TODO enforce minimums based on actual current-size
+          ;; TODO enforce minimums based on actual current-size in proportion to rendered viewport
           :minCropBoxWidth width
           :minCropBoxHeight height
           :background false
@@ -159,22 +159,23 @@
          [:h3 "Resize Image"]
 
          [:section.cumulus-dimensions
-          ;; TODO responsive
-          "Original dimensions: " full_width " x " full_height
-          [:a.cumulus-img-link {:href full_url
-                                :target "_blank"}
+          [:label "Original dimensions: " full_width " x " full_height]
+          [:a {:href full_url
+               :target "_blank"}
            "View full size image"]]
 
-         [:section.cumulus-dimensions "New dimensions:"
-          ;; TODO ditto
-          [:a.cumulus-img-link {:href img-url
-                                :target "_blank"}
-           "View resized image"]
+         [:section.cumulus-dimensions
+          [:label "New dimensions:"]
+          [:a {:href img-url
+               :target "_blank"}
+           "View resized image"]]
 
+         [:section.stack-exception
           [:p.description "Image can only scale down from the original dimensions."]
           [:div
            [:span.cumulus-dimension {:data-label "w"} width]
            ;; TODO svg lock
+           [:span " 🔒 "]
            [:span.cumulus-dimension {:data-label "h"} height]]]
 
          [:section.cumulus-resize-options
