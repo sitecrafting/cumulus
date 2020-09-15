@@ -6,14 +6,20 @@
 
 
 ;; start is called by init and after code reloading finishes
-(defn ^:dev/after-load mount-root []
+(defn ^:dev/after-load mount-root
+  "Mount the root UI component, crop/crop-ui"
+  []
   (rf/clear-subscription-cache!)
   (dom/render [crop/crop-ui]
               (js/document.getElementById "cumulus-crop-ui")))
 
-(defn ^:export init []
-  ;; init is called ONCE when the page loads
-  ;; this is called in the index.html and must be exported
-  ;; so it is available even in :advanced release builds
-  (rf/dispatch-sync [::crop/init-db (js->clj js/CUMULUS_CONFIG)])
+(defn ^:export init
+  "Entry point for the Cumulus Crop UI. Called once when the page loads,
+  and once for each time a new attachment is selected from the WP modal.
+  In dev, this is called in the index.html and must be exported
+  so it is available even in :advanced release builds."
+  [cumulus-config]
+  ;; Clear the currently mounted component, if any.
+  (dom/unmount-component-at-node (js/document.getElementById "cumulus-crop-ui"))
+  (rf/dispatch-sync [::crop/init-db (js->clj cumulus-config)])
   (mount-root))

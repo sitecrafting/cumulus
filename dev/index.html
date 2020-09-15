@@ -23,12 +23,12 @@
   <script>
     var CUMULUS_CONFIG = {
       bucket: 'sean-dean',
-      version: 'v1596590505',
+      // version: 'v1596590505',
       folder: 'sc-test',
       filename: 'heron.jpg',
       full_url: 'https://res.cloudinary.com/sean-dean/image/upload/v1596590505/sc-test/heron.jpg',
-      full_width: 4032,
-      full_height: 3024,
+      full_width: 4048,
+      full_height: 3036,
       sizes: [{
         size_name: "thumbnail",
         width: 150,
@@ -55,21 +55,40 @@
         height: 9999,
       }],
     };
+
+    /*
+     * Toggle between these images to simulate arrows in WP modal
+     */
+    var WP_ATTACHMENTS = [{
+      // version: 'v1600117274',
+      filename: 'heron.jpg',
+      full_url: 'https://res.cloudinary.com/sean-dean/image/upload/v1596590505/sc-test/heron.jpg',
+      full_width: 4048,
+      full_height: 3036,
+    }, {
+      // version: 'v1600117081',
+      filename: 'heron.jpg',
+      full_url: 'https://res.cloudinary.com/sean-dean/image/upload/v1600117081/sc-test/grasshopper.jpg',
+      full_width: 4032,
+      full_height: 3024,
+    }];
   </script>
   <script src="/js/main.js"></script>
   <script>
-    com.sitecrafting.cumulus.core.init()
+    com.sitecrafting.cumulus.core.init(CUMULUS_CONFIG)
 
     Array.from(document.querySelectorAll('[data-nav]')).forEach(a => {
       a.addEventListener('click', (e) => {
         switch (e.target.dataset.nav) {
           case 'prev':
-            console.log("PREV IMAGE");
+          CUMULUS_CONFIG = Object.assign({}, CUMULUS_CONFIG, WP_ATTACHMENTS[0])
             break;
           case 'next':
-            console.log("NEXT IMAGE");
+          CUMULUS_CONFIG = Object.assign({}, CUMULUS_CONFIG, WP_ATTACHMENTS[1])
             break;
         }
+
+        com.sitecrafting.cumulus.core.init(CUMULUS_CONFIG)
       })
     })
   </script>
