@@ -1,5 +1,6 @@
 /dev/js
 /dist/js
+/dist/css
 /node_modules
 /target
 /vendor
