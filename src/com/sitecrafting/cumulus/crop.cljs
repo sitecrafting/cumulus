@@ -10,15 +10,15 @@
 
 ;; On mount, we'll store the instance of our Cropper in here,
 ;; so we can refer to it later
-(def !cropper (atom nil))
+;; (def !cropper (atom nil))
 
 (comment
   ;; Evaluate any of these forms in your editor
 
-  (.setAspectRatio @!cropper (/ 16 9))
-  (.setAspectRatio @!cropper (/ 4 3))
+  ;; (.setAspectRatio @!cropper (/ 16 9))
+  ;; (.setAspectRatio @!cropper (/ 4 3))
 
-  (.reset @!cropper)
+  ;; (.reset @!cropper)
 
   @(rf/subscribe [::crop-params])
 
@@ -62,11 +62,10 @@
 (rf/reg-sub ::img-config :img-config)
 (rf/reg-sub ::current-size :current-size)
 
-(rf/reg-event-fx
+(rf/reg-event-db
  ::update-current-size
- (fn [{:keys [db]} [_ {:keys [width height] :as size}]]
-   {:db (assoc db :current-size size)
-    ::set-aspect-ratio! (when (> height 0) (/ width height))}))
+ (fn [db [_ size]]
+   (assoc db :current-size size)))
 
 ;; CropperJS params
 
@@ -92,15 +91,6 @@
           :movable false
           :rotatable false
           :zoomable false})))
-
-;; Aspect Ratio
-
- (rf/reg-sub ::aspect-ratio :aspect-ratio)
- (rf/reg-event-fx ::set-aspect-ratio (fn [{:keys [db]} [_ ar]]
-                                       {:db (assoc db :aspect-ratio ar)
-                                        ::set-aspect-ratio! ar}))
-(rf/reg-fx ::set-aspect-ratio! (fn [ar]
-                                 (.setAspectRatio @!cropper ar)))
 
 ;; Dimensions
 
@@ -130,20 +120,19 @@
 
 
 (defn cropperjs []
-  (let [!ref (atom nil)]
-    (r/create-class
-     {:reagent-render
-      (fn []
-        [:div
+  (let [!ref (atom nil)
+        !cropper (atom nil)]
+    (fn []
+      (let [{:keys [full_url]} @(rf/subscribe [::img-config])
+            current-size @(rf/subscribe [::current-size])]
+        [:div#cumulus-cropperjs-container
          {:ref (fn [elem]
                  (reset! !ref elem)
-                 ;; TODO reset this whenever current-size changes
-                 (when-let [img (js/document.getElementById "cropper-img")]
-                   (reset! !cropper (Cropper. img @(rf/subscribe [::cropper-js-params])))))}])
-
-      :component-did-update
-      (fn []
-        (.setAspectRatio @!cropper @(rf/subscribe [::aspect-ratio])))})))
+                 (when-let [img (js/document.getElementById "cumulus-img")]
+                   (when @!cropper (.destroy @!cropper))
+                   (reset! !cropper (Cropper. img @(rf/subscribe [::cropper-js-params current-size])))))}
+         ;; By putting the image in here, we tell CropperJS to inject its UI here.
+         [:img#cumulus-img {:src full_url}]]))))
 
 (defn crop-ui []
   (let [img-url @(rf/subscribe [::cloudinary-url])
@@ -163,8 +152,6 @@
      [:div.stack
       [:div.columns
        [:div.col-60
-        ;; By putting the image in here, we tell CropperJS to inject its UI here.
-        [:img#cropper-img {:src full_url}]
         [cropperjs]]
 
        [:div.col-40
