@@ -21,10 +21,9 @@
 
 
 ;; TODO we may need version if we need to fall back to the full URL.
-(defn params->url [{:keys [bucket folder filename transforms #_version]}]
+(defn params->url [{:keys [bucket filename transforms #_version]}]
   (let [segments (conj [bucket "image/upload"]
                        (join "/" (map params->url-segments transforms))
-                       folder
                        filename)]
     (str "https://res.cloudinary.com/" (join "/" (filter seq segments)))))
 
@@ -47,7 +46,6 @@
   (params->url-segments {:w 150 :h 100 :c "lfill"})
 
   (crop->url {:bucket "sean-dean"
-              :folder "sc-test"
               :x 450
               :y 500
               :w 2000
@@ -56,7 +54,6 @@
   ;; => "https://res.cloudinary.com/sean-dean/image/upload/x_450,y_500,w_2000,h_1650,c_crop/sc-test/heron.jpg"
 
   (scale->url {:bucket "sean-dean"
-               :folder "sc-test"
                :w 2000
                :h 1650
                :c "lfill"
@@ -64,7 +61,6 @@
   ;; => "https://res.cloudinary.com/sean-dean/image/upload/w_2000,h_1650,c_lfill/sc-test/heron.jpg"
 
   (scale->url {:bucket "sean-dean"
-               :folder "sc-test"
                :w 2000
                :h 1650
                :c "fit"
