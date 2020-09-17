@@ -49,6 +49,16 @@
 
   text-transform: capitalize;
 }
+.cumulus-current-size {
+  background: lightgrey;
+  text-decoration: underline;
+}
+.cumulus-current-size a {
+  color: black;
+}
+.cumulus-crop-sizes a {
+  text-decoration: none;
+}
 .cumulus-crop-ui img {
   max-width: 100%;
 }

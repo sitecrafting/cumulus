@@ -154,12 +154,17 @@
     [:div.cumulus-crop-ui
      [:nav [:ul.cumulus-crop-sizes
             (map (fn [{:keys [size_name] :as size}]
-                   ^{:key size_name}
-                   [:li [:a {:href "#"
-                             :on-click (fn [e]
-                                         (.preventDefault e)
-                                         (rf/dispatch [::update-current-size size]))}
-                         (size-name->label size_name)]])
+                   (let [current? (= (:size_name current-size) size_name)]
+                     ^{:key size_name}
+                     [:li {:class (when current? "cumulus-current-size")}
+                      [:a {:name size_name
+                           :href "#"
+                           :on-click (fn [e]
+                                       (.preventDefault e)
+                                       ;; Clicking on the currently selected size should have no effect
+                                       (when-not current?
+                                         (rf/dispatch [::update-current-size size])))}
+                       (size-name->label size_name)]]))
                  sizes)]]
 
      [:div.stack
