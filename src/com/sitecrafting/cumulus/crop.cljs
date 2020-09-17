@@ -5,7 +5,6 @@
    [com.sitecrafting.cumulus.cloudinary :as cloud]
    ["cropperjs" :as Cropper]
    ["react-dom"]
-   [reagent.core :as r]
    [re-frame.core :as rf]))
 
 ;; On mount, we'll store the instance of our Cropper in here,
@@ -50,6 +49,7 @@
          {:keys [width height]} current-size]
      {:img-config config
       :current-size current-size
+      :edit-mode :scale
       :aspect-ratio (/ width height)
       :crop-params {:x 0
                     :y 0
@@ -91,6 +91,12 @@
           :movable false
           :rotatable false
           :zoomable false})))
+
+;; Edit mode (whether we're scaling vs. manually cropping)
+
+(rf/reg-sub ::edit-mode :edit-mode)
+(rf/reg-event-db ::update-edit-mode (fn [db [_ mode]]
+                                      (assoc db :edit-mode mode)))
 
 ;; Dimensions
 
@@ -134,9 +140,16 @@
          ;; By putting the image in here, we tell CropperJS to inject its UI here.
          [:img#cumulus-img {:src full_url}]]))))
 
+(defn scaled-img []
+  (let [img-url @(rf/subscribe [::cloudinary-url])]
+    [:div.cumulus-scaled-img-container
+     [:img#cumulus-img {:src img-url}]]))
+
 (defn crop-ui []
   (let [img-url @(rf/subscribe [::cloudinary-url])
-        {:keys [width height]} @(rf/subscribe [::current-size])
+        edit-mode @(rf/subscribe [::edit-mode])
+        cropping? (= :crop edit-mode)
+        {:keys [width height] :as current-size} @(rf/subscribe [::current-size])
         {:keys [sizes full_url full_width full_height]} @(rf/subscribe [::img-config])]
     [:div.cumulus-crop-ui
      [:nav [:ul.cumulus-crop-sizes
@@ -152,7 +165,9 @@
      [:div.stack
       [:div.columns
        [:div.col-60
-        [cropperjs]]
+        (if cropping?
+          [cropperjs]
+          [scaled-img])]
 
        [:div.col-40
         [:aside.cumulus-controls.stack
@@ -181,7 +196,12 @@
          [:section.cumulus-resize-options
           [:h3 "Other Image Options"]
           [:ul
-           [:li "Crop"]
+           [:li
+            [:a {:href "#"
+                 :on-click (fn [e]
+                             (.preventDefault e)
+                             (rf/dispatch [::update-edit-mode (if cropping? :scale :crop)]))}
+             (if cropping? "Scale" "Crop")]]
            [:li "Flip horizontal"]
            [:li "Flip vertical"]]]
 

@@ -27,6 +27,12 @@
   margin-top: 0;
 }
 
+.cumulus-scaled-img-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .cumulus-crop-ui {
   width: 1000em;
   max-width: 95%;
