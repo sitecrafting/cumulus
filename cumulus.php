@@ -6,6 +6,16 @@
  * Version: 0.1.0
  * Author: SiteCrafting, Inc.
  * Author URI: https://www.sitecrafting.com
+ *
+ * TODO (MC3-186):
+ * - Crop/scale toggle
+ * - Flip horizontal/vertical transforms
+ * - scale according to rendered vs. image_size proportions
+ * - Fix current-size bug (DONE?)
+ * - Push AJAX requests down into CLJS
+ * - add click listeners to WP attachment arrow buttons
+ * - nicer transitions between crop sizes
+ * - Nicer styles
  */
 
 
