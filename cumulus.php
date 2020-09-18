@@ -11,11 +11,11 @@
  * - Crop/scale toggle
  * - Flip horizontal/vertical transforms
  * - scale according to rendered vs. image_size proportions
- * - Fix current-size bug (DONE?)
- * - Push AJAX requests down into CLJS
  * - add click listeners to WP attachment arrow buttons
- * - nicer transitions between crop sizes
- * - Nicer styles
+ * - Fix current-size bug (DONE?)
+ * - Push AJAX requests down into CLJS (nice-to-have)
+ * - nicer transitions between crop sizes (nice-to-have)
+ * - Nicer styles (nice-to-have)
  */
 
 
@@ -57,6 +57,13 @@ add_action('init', function() {
 /**
  * The main event. Hook into the attachment src for a given size and
  * return the Cloudinary-rendered cropped/scaled image URL instead.
+ *
+ * Look in e.g. cumulus_image['sizes']['my_image_size'] for the Cloudinary
+ * URL to serve, where `cumulus_image` is the array stored in the post
+ * meta field of the same name, and "my_image_size" is any registered
+ * image size.
+ *
+ * @see https://developer.wordpress.org/reference/functions/add_image_size/
  */
 add_filter('wp_get_attachment_image_src', function($src, $id, $size) {
   // Persist a mapping of attachment IDs to crop URLs, to save
@@ -72,6 +79,8 @@ add_filter('wp_get_attachment_image_src', function($src, $id, $size) {
   }
 
   // Render the customized crop src, if there is one for this size.
+  $src[0] = $sizesById[$id]['urls_by_size'][$size] ?? $src[0];
+  // TODO remove
   $src[0] = $sizesById[$id]['sizes'][$size] ?? $src[0];
 
   return $src;
@@ -97,14 +106,18 @@ add_action('rest_api_init', function() {
       $cloudinaryData = $meta['cloudinary_data'];
 
       return [
-        'attachment_id' => $id,
-        'version'       => $cloudinaryData['version'],
+        'attachment_id'  => $id,
+        'version'        => $cloudinaryData['version'],
         // NOTE: public_id also includes the folder to which the image was uploaded, if any.
-        'filename'      => $cloudinaryData['public_id'] . '.' . $cloudinaryData['format'],
-        'full_url'      => $meta['cloudinary_data']['secure_url'],
-        'full_width'    => $meta['cloudinary_data']['width'],
-        'full_height'   => $meta['cloudinary_data']['height'],
-        'detail'        => $meta,
+        'filename'       => $cloudinaryData['public_id'] . '.' . $cloudinaryData['format'],
+        'full_url'       => $meta['cloudinary_data']['secure_url'],
+        'full_width'     => $meta['cloudinary_data']['width'],
+        'full_height'    => $meta['cloudinary_data']['height'],
+        // `params_by_size.my_image_size` contains the saved transform params for a given crop
+        'params_by_size' => $meta['params_by_size'] ?? [],
+        // `detail.sizes` is where the Cloudinary URLs will show up
+        'detail'         => $meta,
+        // NOTE: global sizes come through via wp_localize_script
       ];
     },
   ]);
@@ -148,7 +161,8 @@ add_action('add_attachment', function(int $id) {
 
     $cloud   = get_option('cumulus_cloud_name');
 
-    $sizes = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes, $result, $cloud) {
+    // TODO farm most of this out to a filter
+    $urlsBySize = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes, $result, $cloud) {
       // Avoid crops of zero width or height.
       $width  = $registeredSizes[$size]['width'];
       $height = $registeredSizes[$size]['height'];
@@ -181,9 +195,9 @@ add_action('add_attachment', function(int $id) {
 
     update_post_meta($id, 'cumulus_image', [
       'cloudinary_id'   => $result['public_id'],
-      'sizes'           => $sizes,
+      'urls_by_size'    => $urlsBySize,
+      'params_by_size'  => [],
       'cloudinary_data' => $result,
-      'custom_crops'    => [],
     ]);
   }
 }, 10);
@@ -249,8 +263,10 @@ add_action('admin_enqueue_scripts', function() {
   }, array_keys($registeredSizes), array_values($registeredSizes));
 
   wp_localize_script('cumulus-crop-ui-js', 'CUMULUS_CONFIG', [
-    'bucket'  => get_option('cumulus_cloud_name'),
+    'cloud'   => get_option('cumulus_cloud_name'),
     'sizes'   => $sizes,
+    // TODO remove in favor of "cloud"
+    'bucket'  => get_option('cumulus_cloud_name'),
   ]);
 
   $css = CUMULUS_JS_DIR . 'main.js';

@@ -22,6 +22,8 @@
 
   <script>
     var CUMULUS_CONFIG = {
+      cloud: 'sean-dean',
+      // TODO remove in favor of "cloud"
       bucket: 'sean-dean',
       // version: 'v1596590505',
       // folder: 'sc-test',
@@ -29,6 +31,31 @@
       full_url: 'https://res.cloudinary.com/sean-dean/image/upload/v1596590505/sc-test/heron.jpg',
       full_width: 4048,
       full_height: 3036,
+      // We need this here so we can init the UI with the saved transform params
+      params_by_size: {
+        "thumbnail": {
+          edit_mode: "crop",
+          transforms: [{
+            w: 892,
+            h: 892,
+            x: 1255,
+            y: 714,
+            c: "crop",
+          }, {
+            w: 150,
+            h: 150,
+            c: "scale",
+          }],
+        },
+        "medium": {
+          edit_mode: "scale",
+          transforms: [{
+            w: 300,
+            h: 300,
+            c: "lfill",
+          }],
+        },
+      },
       sizes: [{
         size_name: "thumbnail",
         width: 150,
