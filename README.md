@@ -1,36 +1,36 @@
-# shadow-cljs - browser quickstart
+# Cumulus
 
-## TODO revise/generalize this README
+A WordPress plugin for managing custom image crops through Cloudinary.
 
-This is a minimum template you can use as the basis for CLJS projects intended to run in the browser.
+Store just the URLs for each crop of each image. Never worry about regenerating custom crops again: let Cloudinary take care of that for you, on the fly!
 
-## Required Software
+## Development
+
+**TODO** revise this documentation.
+
+This repo was based on the [Shadow CLJS Browser Quickstart](https://github.com/shadow-cljs/quickstart-browser.git) template.
+
+### Required Software
+
+These are the baseline requirements for the dev environment:
 
 - [node.js (v6.0.0+)](https://nodejs.org/en/download/)
+- [Yarn](https://yarnpkg.com/)
 - [Java JDK (8+)](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [Open JDK (8+)](http://jdk.java.net/10/)
 
-## User Guide
-
-This repository only shows a basic example of how to get a basic Browser build.
-
-Please refer to the full [User Guide](https://shadow-cljs.github.io/docs/UsersGuide.html) for more information.
-
-
-## Running the Example
-
 ```bash
-git clone https://github.com/shadow-cljs/quickstart-browser.git quickstart
+git clone https://github.com/sitecrafting/cumulus.git quickstart
 cd quickstart
-npm install
-npx shadow-cljs server
+yarn
+yarn dev
 ```
 
 This runs the `shadow-cljs` server process which all following commands will talk to. Just leave it running and open a new terminal to continue.
 
 The first startup takes a bit of time since it has to download all the dependencies and do some prep work. Once this is running we can get started.
 
-```txt
-npx shadow-cljs watch app
+```bash
+yarn shadow watch main
 ```
 
 This will begin the compilation of the configured `:app` build and re-compile whenever you change a file.
