@@ -19,8 +19,6 @@
 
   ;; (.reset @!cropper)
 
-  @(rf/subscribe [::crop-params])
-
   js/CUMULUS_CONFIG
   @(rf/subscribe [::img-config])
   ;; => {:bucket "sean-dean",
@@ -44,17 +42,19 @@
  ::init-db
  (fn [_ [_ config]]
    (let [config (keywordize-keys config)
+         ;; TODO remove?
          sizes (:sizes config)
          current-size (first sizes)
-         {:keys [width height]} current-size]
+         {:keys [width height size_name]} current-size]
+     (js/console.log (get-in config [:params_by_size (keyword size_name) :edit_mode]))
      {:img-config config
       :current-size current-size
-      :edit-mode :scale
+      ;; TODO make this dynamic and remove this literal index
+      :edit-mode (keyword (or
+                           (get-in config [:params_by_size (keyword size_name) :edit_mode])
+                           :scale))
       :aspect-ratio (/ width height)
-      :crop-params {:x 0
-                    :y 0
-                    :w 0
-                    :h 0}
+      ;; TODO remove?
       :sizes sizes})))
 
 ;; Image info
@@ -77,7 +77,8 @@
    (let [{:keys [width height]} (:current-size db)]
      #js {:crop (fn [event]
                   (let [params (.-detail event)]
-                    (rf/dispatch [::set-crop-params
+                    (rf/dispatch [::update-transform-params
+                                  :crop
                                   {:x (js/Math.round (.-x params))
                                    :y (js/Math.round (.-y params))
                                    :w (js/Math.round (.-width params))
@@ -94,25 +95,50 @@
 
 ;; Edit mode (whether we're scaling vs. manually cropping)
 
-(rf/reg-sub ::edit-mode :edit-mode)
-(rf/reg-event-db ::update-edit-mode (fn [db [_ mode]]
-                                      (assoc db :edit-mode mode)))
+(defn- db->size-name [db]
+  (keyword (get-in db [:current-size :size_name])))
+
+(defn db->edit-mode [db]
+  (keyword (get-in db [:img-config :params_by_size (db->size-name db) :edit_mode])))
+
+(rf/reg-sub ::edit-mode db->edit-mode)
 
 ;; Dimensions
 
-(rf/reg-sub ::crop-params :crop-params)
-(rf/reg-event-db ::set-crop-params (fn [db [_ params]]
-                                     (assoc db :crop-params params)))
+(defn- db->target-size [{:keys [current-size]}]
+  [(:width current-size) (:height current-size)])
+
+(defn- db->cropper-params [db]
+  (get-in db [:img-config :params_by_size (db->size-name db) :crop]))
+
+(defn db->transform-params [{:keys [img-config] :as db}]
+  (let [params (assoc (db->cropper-params db)
+                      :edit-mode (db->edit-mode db)
+                      :target-size (db->target-size db))]
+    {:cloud (:cloud img-config)
+     :filename (:filename img-config)
+     :transforms (cloud/params->transforms params)}))
+
+(defmulti update-transform-params (fn [_ [_ mode]]
+                                    (keyword mode)))
+
+(defmethod update-transform-params :crop [db [_ _ crop]]
+  (assoc-in db [:img-config :params_by_size (db->size-name db)] {:edit_mode "crop"
+                                                                 :crop crop}))
+
+(defmethod update-transform-params :scale [db _]
+  (assoc-in db [:img-config :params_by_size (db->size-name db)] {:edit_mode "scale"}))
+
+(rf/reg-event-db ::update-transform-params update-transform-params)
+(rf/reg-event-db
+ ::update-edit-mode
+ (fn [db [_ mode]]
+   (update-transform-params db [::update-transform-params mode {}])))
 
 ;; Compute the end result: the Cloudinary URL for our custom crop.
 
-(rf/reg-sub
- ::cloudinary-url
- (fn [{:keys [crop-params img-config current-size]}]
-   (cloud/crop->url (merge img-config
-                           crop-params
-                           {:target-size [(:width current-size)
-                                          (:height current-size)]}))))
+(rf/reg-sub ::cloudinary-url (fn [db]
+                               (cloud/crop->url (db->transform-params db))))
 
 
 ;; Helpers
@@ -147,6 +173,7 @@
 
 (defn crop-ui []
   (let [img-url @(rf/subscribe [::cloudinary-url])
+        params-by-size (:params_by_size @(rf/subscribe [::img-config]))
         edit-mode @(rf/subscribe [::edit-mode])
         cropping? (= :crop edit-mode)
         {:keys [width height] :as current-size} @(rf/subscribe [::current-size])
@@ -205,6 +232,7 @@
             [:a {:href "#"
                  :on-click (fn [e]
                              (.preventDefault e)
+                             ;; TODO update-transform-params
                              (rf/dispatch [::update-edit-mode (if cropping? :scale :crop)]))}
              (if cropping? "Scale" "Crop")]]
            [:li "Flip horizontal"]
@@ -213,4 +241,7 @@
          [:footer
           [:span.cumulus-control
            [:button {:on-click #(rf/dispatch [::save!])} "Save"]
-           [:button {:on-click #(rf/dispatch [::cancel])} "Cancel"]]]]]]]]))
+           [:button {:on-click #(rf/dispatch [::cancel])} "Cancel"]]]
+         
+         [:aside.debugger
+          [:pre (js/JSON.stringify (clj->js params-by-size) nil 2)]]]]]]]))

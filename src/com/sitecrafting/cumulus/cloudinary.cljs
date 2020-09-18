@@ -3,6 +3,12 @@
    [clojure.string :refer [join]]))
 
 
+(defn- ->param [[k v]]
+  (cond
+    (= :h k) (when (and v (not= 0 v)) (str (name k) "_" v))
+    (= :w k) (when (and v (not= 0 v)) (str (name k) "_" v))
+    :else    (when v (str (name k) "_" v))))
+
 (defn- params->url-segments
   "Given a map like {:w 1000 :h 400}, returns a string like 'w_1000,h_400'.
    If no crop strategy is passed, defaults to c_crop.
@@ -14,25 +20,39 @@
         params (-> params
                    ;; Set a default crop strategy of "c_crop"
                    (assoc :c (:c params "crop")))]
-    (join "," (filter seq (map (fn [[k v]]
-                                 (when (and v (not= 0 v))
-                                   (str (name k) "_" v)))
-                               params)))))
+    (join "," (filter seq (map ->param params)))))
+
+(defmulti params->transforms :edit-mode)
+
+(defmethod params->transforms :scale [{:keys [target-size]}]
+  (let [[w h] target-size]
+    [{:w w :h h :c "lfill"}]))
+
+(defmethod params->transforms :crop [{:keys [target-size] :as params}]
+  (let [[w h] target-size
+        crop-transform (assoc (select-keys params [:x :y :w :h]) :c "crop")
+        scale-transform {:w w :h h :c "scale"}]
+    [crop-transform scale-transform]))
+
+(defn img-transforms->url [{:keys [cloud filename transforms]}]
+  (let [transform-segments (map params->url-segments transforms)
+        url-transform (join "/" transform-segments)
+        url-segments [cloud "image/upload" url-transform filename]]
+    (str "https://res.cloudinary.com/" (join "/" url-segments))))
 
 
+;; TODO derive these within crop ns and delete these fns
 ;; TODO we may need version if we need to fall back to the full URL.
 (defn params->url [{:keys [bucket filename transforms #_version]}]
   (let [segments (conj [bucket "image/upload"]
                        (join "/" (map params->url-segments transforms))
                        filename)]
     (str "https://res.cloudinary.com/" (join "/" (filter seq segments)))))
-
 (defn crop->url [params]
   (let [manual-crop (select-keys params [:x :y :w :h])
         [w h] (:target-size params)
         scale {:w w :h h :c "scale"}]
     (params->url (merge params {:transforms [manual-crop scale]}))))
-
 (defn scale->url [params]
   (let [scaling-strategy (:c params "lfill")
         crop (merge (select-keys params [:w :h])
