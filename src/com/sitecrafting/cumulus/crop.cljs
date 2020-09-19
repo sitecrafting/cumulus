@@ -71,6 +71,19 @@
            :edit-mode saved-edit-mode
            :crop-params saved-crop)))
 
+(defmulti params-to-save :edit-mode)
+
+(defmethod params-to-save :scale [_]
+  {:edit_mode "scale"})
+
+(defmethod params-to-save :crop [{:keys [crop-params]}]
+  {:edit_mode "crop"
+   :crop crop-params})
+
+(defn db->update-sizes-req [{:keys [img-config current-size] :as db}]
+  (let [size (keyword (:size_name current-size))]
+    (assoc-in img-config [:params_by_size size] (params-to-save db))))
+
 (rf/reg-event-db ::update-current-size update-current-size)
 
 ;; CropperJS params
