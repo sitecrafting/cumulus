@@ -40,7 +40,7 @@
         (is (= :crop (:edit-mode updated)))
         (is (= {:x 0 :y 0 :w 150 :h 150} (:crop-params updated)))))))
 
-(deftest test-db->update-sizes-req
+(deftest test-db->update-sizes-config
 
   (testing "it derives request data from :current-size, :edit-mode, and :crop-params"
     (let [db {:img-config {:attachment_id 25
@@ -60,21 +60,21 @@
                                :medium {:edit_mode "scale"}
                                :large {:edit_mode "crop"
                                        :crop {:x 50 :y 200 :w 2000 :h 2000}}}}
-             (crop/db->update-sizes-req db)))
+             (crop/db->update-sizes-config db)))
 
       (is (= {:attachment_id 25
               :params_by_size {:thumbnail {:edit_mode "crop"
                                            :crop {:x 50 :y 200 :w 2000 :h 2000}}
                                :medium {:edit_mode "scale"}
                                :large {:edit_mode "scale"}}}
-             (crop/db->update-sizes-req (assoc db
+             (crop/db->update-sizes-config (assoc db
                                                :current-size {:size_name "thumbnail"}))))
 
       (is (= {:attachment_id 25
               :params_by_size {:thumbnail {:edit_mode "scale"}
                                :medium {:edit_mode "scale"}
                                :large {:edit_mode "scale"}}}
-             (crop/db->update-sizes-req (assoc db
+             (crop/db->update-sizes-config (assoc db
                                                :current-size {:size_name "thumbnail"}
                                                :edit-mode :scale)))))))
 
@@ -103,3 +103,33 @@
                                         :edit-mode :crop
                                         :crop-params {:x 0 :y 0 :w 300 :h 300}
                                         :current-size {:size_name "thumbnail"}})))))
+
+(deftest test-save-current-size
+  (let [cofx {:db {:img-config {:attachment_id 25
+                                :params_by_size {:thumbnail
+                                                 {:edit_mode "crop"
+                                                  :crop {:x 0 :y 0 :w 150 :h 150}}}}
+                   :edit-mode :crop
+                   :crop-params {:x 50 :y 50 :w 300 :h 300}
+                   :current-size {:size_name "thumbnail"}}}]
+
+    ;; Saving updates the params by current-size,
+    ;; AND sends an API request
+    (is (= {:db {:img-config {:attachment_id 25
+                              :params_by_size {:thumbnail
+                                               {:edit_mode "crop"
+                                                :crop {:x 50 :y 50 :w 300 :h 300}}}}
+                 :edit-mode :crop
+                 :crop-params {:x 50 :y 50 :w 300 :h 300}
+                 :current-size {:size_name "thumbnail"}}
+            ::crop/save-current-size! {:attachment_id 25
+                                       :params_by_size {:thumbnail
+                                                        {:edit_mode "crop"
+                                                         :crop {:x 50 :y 50 :w 300 :h 300}}}}}
+           (crop/save-current-size cofx)))))
+
+(deftest test-reset-current-size
+  (let [db {:current-size {:size_name "large"}}]
+    ;; Resetting simply delegates to ::update-current-size with... current-size
+    (is (= {:dispatch [::crop/update-current-size {:size_name "large"}]}
+           (crop/reset-current-size {:db db})))))

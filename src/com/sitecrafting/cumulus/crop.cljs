@@ -85,11 +85,28 @@
     (not= (get-in img-config [:params_by_size size])
           (params-to-save db))))
 
-(defn db->update-sizes-req [{:keys [img-config current-size] :as db}]
+(defn db->update-sizes-config [{:keys [img-config current-size] :as db}]
   (let [size (keyword (:size_name current-size))]
     (assoc-in img-config [:params_by_size size] (params-to-save db))))
 
+(defn save-current-size [{:keys [db]}]
+  (let [config (db->update-sizes-config db)]
+    {:db (assoc db :img-config config)
+     ::save-current-size! config}))
+
+(defn reset-current-size [{:keys [db]}]
+  {:dispatch [::update-current-size (:current-size db)]})
+
 (rf/reg-event-db ::update-current-size update-current-size)
+(rf/reg-event-fx ::reset-current-size reset-current-size)
+(rf/reg-event-fx ::save-current-size! save-current-size)
+
+(rf/reg-fx ::save-current-size! (fn [{:keys [attachment_id params_by_size]}]
+                                  (-> (js/fetch (str "/wp-json/v1/attachment/" attachment_id)
+                                                #js {:method "POST"
+                                                     :body (js/JSON.stringify (clj->js params_by_size))})
+                                      (.then (fn [response]
+                                               (js/console.log response))))))
 
 ;; CropperJS params
 
@@ -239,5 +256,5 @@
 
          [:footer
           [:span.cumulus-control
-           [:button {:on-click #(rf/dispatch [::save!])} "Save"]
-           [:button {:on-click #(rf/dispatch [::cancel])} "Cancel"]]]]]]]]))
+           [:button {:on-click #(rf/dispatch [::save-current-size!])} "Save"]
+           [:button {:on-click #(rf/dispatch [::reset-current-size])} "Reset"]]]]]]]]))
