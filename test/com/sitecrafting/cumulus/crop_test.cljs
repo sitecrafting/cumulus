@@ -77,3 +77,29 @@
              (crop/db->update-sizes-req (assoc db
                                                :current-size {:size_name "thumbnail"}
                                                :edit-mode :scale)))))))
+
+(deftest test-unsaved-changes?
+
+  (testing "when the user has updated edit mode"
+    (is (crop/unsaved-changes? {:img-config {:params_by_size {:thumbnail
+                                                              {:edit_mode "crop"
+                                                               :crop {:x 0 :y 0 :w 150 :h 150}}}}
+                                :edit-mode :scale
+                                :crop-params {}
+                                :current-size {:size_name "thumbnail"}})))
+
+  (testing "when the user has updated crop params"
+    (is (crop/unsaved-changes? {:img-config {:params_by_size {:thumbnail
+                                                              {:edit_mode "crop"
+                                                               :crop {:x 0 :y 0 :w 300 :h 300}}}}
+                                :edit-mode :crop
+                                :crop-params {:x 50 :y 100 :w 300 :h 300}
+                                :current-size {:size_name "thumbnail"}})))
+
+  (testing "when there are NO unsaved changes"
+    (is (false? (crop/unsaved-changes? {:img-config {:params_by_size {:thumbnail
+                                                                      {:edit_mode "crop"
+                                                                       :crop {:x 0 :y 0 :w 300 :h 300}}}}
+                                        :edit-mode :crop
+                                        :crop-params {:x 0 :y 0 :w 300 :h 300}
+                                        :current-size {:size_name "thumbnail"}})))))

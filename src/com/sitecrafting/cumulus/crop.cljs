@@ -80,6 +80,11 @@
   {:edit_mode "crop"
    :crop crop-params})
 
+(defn unsaved-changes? [{:keys [img-config current-size] :as db}]
+  (let [size (keyword (:size_name current-size))]
+    (not= (get-in img-config [:params_by_size size])
+          (params-to-save db))))
+
 (defn db->update-sizes-req [{:keys [img-config current-size] :as db}]
   (let [size (keyword (:size_name current-size))]
     (assoc-in img-config [:params_by_size size] (params-to-save db))))
