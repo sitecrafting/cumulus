@@ -31,19 +31,6 @@
       full_url: 'https://res.cloudinary.com/sean-dean/image/upload/v1596590505/sc-test/heron.jpg',
       full_width: 4048,
       full_height: 3036,
-      // We need this here so we can init the UI with the saved transform params
-      params_by_size: {
-        "thumbnail": {
-          edit_mode: "crop",
-          crop: { w: 892, h: 892, x: 1255, y: 714 },
-        },
-        "medium": {
-          edit_mode: "scale",
-        },
-        "large": {
-          edit_mode: "scale",
-        },
-      },
       sizes: [{
         size_name: "thumbnail",
         width: 150,
@@ -80,12 +67,39 @@
       full_url: 'https://res.cloudinary.com/sean-dean/image/upload/v1596590505/sc-test/heron.jpg',
       full_width: 4048,
       full_height: 3036,
+      // We need this here so we can init the UI with the saved transform params
+      params_by_size: {
+        "thumbnail": {
+          edit_mode: "crop",
+          crop: { w: 892, h: 892, x: 1255, y: 714 },
+        },
+        "medium": {
+          edit_mode: "scale",
+        },
+        "large": {
+          edit_mode: "scale",
+        },
+      },
     }, {
       // version: 'v1600117081',
       filename: 'sc-test/grasshopper.jpg',
       full_url: 'https://res.cloudinary.com/sean-dean/image/upload/v1600117081/sc-test/grasshopper.jpg',
       full_width: 4032,
       full_height: 3024,
+      // We need this here so we can init the UI with the saved transform params
+      params_by_size: {
+        "thumbnail": {
+          edit_mode: "crop",
+          crop: { w: 892, h: 892, x: 100, y: 100 },
+        },
+        "medium": {
+          edit_mode: "crop",
+          crop: { w: 500, h: 500, x: 0, y: 0 },
+        },
+        "large": {
+          edit_mode: "scale",
+        },
+      },
     }];
   </script>
   <script src="/js/main.js"></script>

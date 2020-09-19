@@ -8,6 +8,7 @@
  * Author URI: https://www.sitecrafting.com
  *
  * TODO (MC3-186):
+ * - load saved crop from params_by_size
  * - Crop/scale toggle
  * - Flip horizontal/vertical transforms
  * - scale according to rendered vs. image_size proportions

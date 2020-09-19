@@ -1,6 +1,6 @@
 (ns com.sitecrafting.cumulus.crop-test
   (:require
-   [clojure.test :refer [deftest is]]
+   [clojure.test :refer [deftest is testing]]
    [com.sitecrafting.cumulus.crop :as crop]))
 
 
@@ -9,3 +9,39 @@
   (is (= "a b c" (crop/size-name->label "a_b_c")))
   (is (= "a b c" (crop/size-name->label "a-b-c")))
   (is (= "a b c" (crop/size-name->label "a_b-c"))))
+
+(deftest test-update-current-size
+
+  (testing "it updates :current-size with the passed map"
+    (let [db {:current-size {:size_name "thumbnail"
+                             :width 150
+                             :height 150}}]
+      (let [size {:size_name "medium" :width 300 :height 300}]
+        (is (= size
+               (:current-size (crop/update-current-size db [:_ size])))))
+      (let [size {:size_name "large" :width 1024 :height 1024}]
+        (is (= size
+               (:current-size (crop/update-current-size db [:_ size])))))))
+
+  (testing "it updates :edit-mode and :crop-params with the saved settings for the given size"
+    (let [db {:edit-mode "this gets overwritten"
+              :img-config {:params_by_size {:thumbnail {:edit_mode "crop"
+                                                        :crop {:x 0 :y 0 :w 150 :h 150}}
+                                            :medium {:edit_mode "scale"}
+                                            :large {:edit_mode "scale"}}}
+              :crop-params nil
+              :current-size {:size_name "large"
+                             :width 1024
+                             :height 1024}}]
+      (let [updated (crop/update-current-size db [:_ {:size_name "medium"}])]
+        (is (= :scale (:edit-mode updated)))
+        (is (nil? (:crop-params updated))))
+      (let [updated (crop/update-current-size db [:_ {:size_name "thumbnail"}])]
+        (is (= :crop (:edit-mode updated)))
+        (is (= {:x 0 :y 0 :w 150 :h 150} (:crop-params updated)))))))
+
+(deftest test-on-save-data
+
+  (testing "it derives request data from :current-size, :edit-mode, and :crop-params"
+    ;; TODO
+    ))

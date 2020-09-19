@@ -46,12 +46,12 @@ jQuery(function($){
             }
 
             // Enrich the UI config with attachment-specific data.
-            CUMULUS_CONFIG.attachment_id = data.attachment_id;
-            CUMULUS_CONFIG.full_url      = data.full_url;
-            CUMULUS_CONFIG.full_width    = data.full_width;
-            CUMULUS_CONFIG.full_height   = data.full_height;
-            CUMULUS_CONFIG.filename      = data.filename;
-            CUMULUS_CONFIG.version       = data.version; // TODO do we need this?
+            CUMULUS_CONFIG.attachment_id  = data.attachment_id;
+            CUMULUS_CONFIG.full_url       = data.full_url;
+            CUMULUS_CONFIG.full_width     = data.full_width;
+            CUMULUS_CONFIG.full_height    = data.full_height;
+            CUMULUS_CONFIG.filename       = data.filename;
+            CUMULUS_CONFIG.params_by_size = data.params_by_size;
 
             $actions.append($customizeImageCropsBtn);
           },

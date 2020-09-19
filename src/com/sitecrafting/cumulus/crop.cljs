@@ -62,35 +62,45 @@
 (rf/reg-sub ::img-config :img-config)
 (rf/reg-sub ::current-size :current-size)
 
-(rf/reg-event-db
- ::update-current-size
- (fn [db [_ size]]
-   (assoc db :current-size size)))
+(defn update-current-size [{:keys [img-config] :as db} [_ new-size]]
+  (let [saved-size (get-in img-config [:params_by_size (keyword (:size_name new-size))])
+        saved-edit-mode (keyword (:edit_mode saved-size))
+        saved-crop (:crop saved-size)]
+    (assoc db
+           :current-size new-size
+           :edit-mode saved-edit-mode
+           :crop-params saved-crop)))
+
+(rf/reg-event-db ::update-current-size update-current-size)
 
 ;; CropperJS params
 
 ;; Init the CropperJS instance.
 ;; https://github.com/fengyuanchen/cropperjs/blob/master/README.md
 (rf/reg-sub
- ::cropper-js-params
- (fn [db]
+ ::cropper-js
+ (fn [db [_ img-elem]]
    (let [{:keys [width height]} (:current-size db)]
-     #js {:crop (fn [event]
-                  (let [params (.-detail event)]
-                    (rf/dispatch [::set-crop-params
-                                  {:x (js/Math.round (.-x params))
-                                   :y (js/Math.round (.-y params))
-                                   :w (js/Math.round (.-width params))
-                                   :h (js/Math.round (.-height params))}])))
-          :aspectRatio (when (> height 0) (/ width height))
-          ;; TODO enforce minimums based on actual current-size in proportion to rendered viewport
-          :minCropBoxWidth width
-          :minCropBoxHeight height
-          :background false
-          :scalable false
-          :movable false
-          :rotatable false
-          :zoomable false})))
+     (js/console.log img-elem)
+     (Cropper.
+      img-elem
+      #js {:crop (fn [event]
+                   (let [params (.-detail event)]
+                     (rf/dispatch [::set-crop-params
+                                   {:x (js/Math.round (.-x params))
+                                    :y (js/Math.round (.-y params))
+                                    :w (js/Math.round (.-width params))
+                                    :h (js/Math.round (.-height params))}])))
+           :aspectRatio (when (> height 0) (/ width height))
+           ;; TODO get from params_by_size
+           ;; TODO enforce minimums based on actual current-size in proportion to rendered viewport
+           :minCropBoxWidth width
+           :minCropBoxHeight height
+           :background false
+           :scalable false
+           :movable false
+           :rotatable false
+           :zoomable false}))))
 
 ;; Edit mode (whether we're scaling vs. manually cropping)
 
@@ -129,14 +139,13 @@
   (let [!ref (atom nil)
         !cropper (atom nil)]
     (fn []
-      (let [{:keys [full_url]} @(rf/subscribe [::img-config])
-            current-size @(rf/subscribe [::current-size])]
+      (let [{:keys [full_url]} @(rf/subscribe [::img-config])]
         [:div#cumulus-cropperjs-container
          {:ref (fn [elem]
                  (reset! !ref elem)
                  (when-let [img (js/document.getElementById "cumulus-img")]
                    (when @!cropper (.destroy @!cropper))
-                   (reset! !cropper (Cropper. img @(rf/subscribe [::cropper-js-params current-size])))))}
+                   (reset! !cropper @(rf/subscribe [::cropper-js img]))))}
          ;; By putting the image in here, we tell CropperJS to inject its UI here.
          [:img#cumulus-img {:src full_url}]]))))
 
