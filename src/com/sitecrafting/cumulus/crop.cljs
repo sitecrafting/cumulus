@@ -46,15 +46,16 @@
    (let [config (keywordize-keys config)
          sizes (:sizes config)
          current-size (first sizes)
-         {:keys [width height]} current-size]
+         {:keys [width height size_name]} current-size
+         params (get-in config [:params_by_size (keyword size_name)])
+         mode (keyword (:edit_mode params))
+         crop (:crop params)]
+     (js/console.log mode)
      {:img-config config
       :current-size current-size
-      :edit-mode :scale
+      :edit-mode mode
       :aspect-ratio (/ width height)
-      :crop-params {:x 0
-                    :y 0
-                    :w 0
-                    :h 0}
+      :crop-params crop
       :sizes sizes})))
 
 ;; Image info

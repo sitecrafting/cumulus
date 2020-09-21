@@ -72,7 +72,7 @@
       params_by_size: {
         "thumbnail": {
           edit_mode: "crop",
-          crop: { w: 892, h: 892, x: 1255, y: 714 },
+          crop: { w: 1000, h: 1000, x: 1200, y: 700 },
         },
         "medium": {
           edit_mode: "scale",
@@ -106,7 +106,7 @@
   </script>
   <script src="/js/main.js"></script>
   <script>
-    com.sitecrafting.cumulus.core.init(CUMULUS_CONFIG)
+    com.sitecrafting.cumulus.core.init(Object.assign({}, CUMULUS_CONFIG, WP_ATTACHMENTS[0]))
 
     Array.from(document.querySelectorAll('[data-nav]')).forEach(a => {
       a.addEventListener('click', (e) => {
