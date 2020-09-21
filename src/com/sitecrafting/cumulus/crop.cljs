@@ -126,8 +126,8 @@
                         :left (:x params)}))
 
 (comment
-  (update-crop-params [{:w 980 :h 980 :x 1200 :y 700}])
-  (update-crop-params [{:w 100 :h 100 :x 450 :y 175}])
+  (update-crop-params [{:w 200 :h 200 :x 10 :y 10}])
+  (update-crop-params [{:w 350 :h 350 :x 5 :y 5}])
   (r/flush)
 
   ;;
@@ -197,16 +197,26 @@
 
 
 (defn cropperjs []
-  (let [!ref (atom nil)]
+  (r/create-class
+   {:reagent-render
     (fn []
-      (let [{:keys [full_url]} @(rf/subscribe [::img-config])]
-        [:div#cumulus-cropperjs-container
-         {:ref (fn [elem]
-                 (reset! !ref elem)
-                 (when-let [img (js/document.getElementById "cumulus-img")]
-                   (reset! !cropper @(rf/subscribe [::cropper-js img]))))}
+      (let [{:keys [full_url]} @(rf/subscribe [::img-config])
+            ;; We don't strictly need this, but it's a simple way
+            ;; to get this component to update when we switch between sizes,
+            ;; so we can dispatch ::update-current-size
+            current-size (:size_name @(rf/subscribe [::current-size]))]
+        [:div#cumulus-cropperjs-container {:data-size (:size_name current-size)}
          ;; By putting the image in here, we tell CropperJS to inject its UI here.
-         [:img#cumulus-img {:src full_url}]]))))
+         [:img#cumulus-img {:src full_url}]]))
+
+    :component-did-update
+    (fn []
+      (rf/dispatch [::update-current-size @(rf/subscribe [::current-size])]))
+
+    :component-did-mount
+    (fn []
+      (when-let [img (js/document.getElementById "cumulus-img")]
+        (reset! !cropper @(rf/subscribe [::cropper-js img]))))}))
 
 (defn scaled-img []
   (let [img-url @(rf/subscribe [::cloudinary-url])]
