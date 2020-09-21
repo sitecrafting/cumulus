@@ -5,7 +5,8 @@
    [com.sitecrafting.cumulus.cloudinary :as cloud]
    ["cropperjs" :as Cropper]
    ["react-dom"]
-   [re-frame.core :as rf]))
+   [re-frame.core :as rf]
+   [reagent.core :as r]))
 
 ;; On mount, we'll store the instance of our Cropper in here,
 ;; so we can refer to it later
@@ -50,7 +51,6 @@
          params (get-in config [:params_by_size (keyword size_name)])
          mode (keyword (:edit_mode params))
          crop (:crop params)]
-     (js/console.log mode)
      {:img-config config
       :current-size current-size
       :edit-mode mode
@@ -60,17 +60,27 @@
 
 ;; Image info
 
+;; CropperJS instance
+(defonce !cropper (r/atom nil))
+
 (rf/reg-sub ::img-config :img-config)
 (rf/reg-sub ::current-size :current-size)
 
-(defn update-current-size [{:keys [img-config] :as db} [_ new-size]]
-  (let [saved-size (get-in img-config [:params_by_size (keyword (:size_name new-size))])
+(defn- size->name [size]
+  (keyword (:size_name size)))
+
+(defn update-current-size [{:keys [db]} [_ new-size]]
+  (let [saved-size (get-in db [:img-config :params_by_size (size->name new-size)])
         saved-edit-mode (keyword (:edit_mode saved-size))
-        saved-crop (:crop saved-size)]
-    (assoc db
-           :current-size new-size
-           :edit-mode saved-edit-mode
-           :crop-params saved-crop)))
+        saved-crop (:crop saved-size)
+        crop-fx (if (= :crop saved-edit-mode)
+                  {::update-crop-params [saved-crop]}
+                  {::destroy-cropper []})]
+    (js/console.log "crop for" (:size_name new-size) (clj->js saved-crop))
+    (merge crop-fx {:db (assoc db
+                               :current-size new-size
+                               :edit-mode saved-edit-mode
+                               :crop-params saved-crop)})))
 
 (defmulti params-to-save :edit-mode)
 
@@ -87,18 +97,18 @@
           (params-to-save db))))
 
 (defn db->update-sizes-config [{:keys [img-config current-size] :as db}]
-  (let [size (keyword (:size_name current-size))]
-    (assoc-in img-config [:params_by_size size] (params-to-save db))))
+  (assoc-in img-config [:params_by_size (size->name current-size)] (params-to-save db)))
 
 (defn save-current-size [{:keys [db]}]
   (let [config (db->update-sizes-config db)]
+    (js/console.log (clj->js (get-in config [:params_by_size (size->name (:current-size db)) :crop])))
     {:db (assoc db :img-config config)
      ::save-current-size! config}))
 
 (defn reset-current-size [{:keys [db]}]
   {:dispatch [::update-current-size (:current-size db)]})
 
-(rf/reg-event-db ::update-current-size update-current-size)
+(rf/reg-event-fx ::update-current-size update-current-size)
 (rf/reg-event-fx ::reset-current-size reset-current-size)
 (rf/reg-event-fx ::save-current-size! save-current-size)
 
@@ -109,6 +119,27 @@
                                       (.then (fn [response]
                                                (js/console.log response))))))
 
+(defn update-crop-params [[params]]
+  (js/console.log ".setCropBoxData" (clj->js params))
+  (.setCropBoxData @!cropper
+                   #js {:width (:w params)
+                        :height (:h params)
+                        :top (:y params)
+                        :left (:x params)}))
+
+(comment
+  (update-crop-params [{:w 980 :h 980 :x 1200 :y 700}])
+  (update-crop-params [{:w 2300 :h 2300 :x 450 :y 175}])
+  (r/flush)
+
+  ;;
+  )
+
+(rf/reg-fx ::update-crop-params update-crop-params)
+
+(rf/reg-fx ::destroy-cropper (fn [_]
+                               (.destroy @!cropper)))
+
 ;; CropperJS params
 
 ;; Init the CropperJS instance.
@@ -117,7 +148,6 @@
  ::cropper-js
  (fn [db [_ img-elem]]
    (let [{:keys [width height]} (:current-size db)]
-     (js/console.log img-elem)
      (Cropper.
       img-elem
       #js {:crop (fn [event]
@@ -128,7 +158,6 @@
                                     :w (js/Math.round (.-width params))
                                     :h (js/Math.round (.-height params))}])))
            :aspectRatio (when (> height 0) (/ width height))
-           ;; TODO get from params_by_size
            ;; TODO enforce minimums based on actual current-size in proportion to rendered viewport
            :minCropBoxWidth width
            :minCropBoxHeight height
@@ -172,15 +201,13 @@
 
 
 (defn cropperjs []
-  (let [!ref (atom nil)
-        !cropper (atom nil)]
+  (let [!ref (atom nil)]
     (fn []
       (let [{:keys [full_url]} @(rf/subscribe [::img-config])]
         [:div#cumulus-cropperjs-container
          {:ref (fn [elem]
                  (reset! !ref elem)
                  (when-let [img (js/document.getElementById "cumulus-img")]
-                   (when @!cropper (.destroy @!cropper))
                    (reset! !cropper @(rf/subscribe [::cropper-js img]))))}
          ;; By putting the image in here, we tell CropperJS to inject its UI here.
          [:img#cumulus-img {:src full_url}]]))))
