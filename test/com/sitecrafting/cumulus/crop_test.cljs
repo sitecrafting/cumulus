@@ -12,7 +12,7 @@
 
 (deftest test-update-current-size
 
-  (testing "it fires the ::update-crop-params or ::destroy-cropper effect"
+  (testing "it fires the ::update-crop-params effect"
     (let [cofx {:db {:current-size {:size_name "thumbnail"}
                      :img-config {:params_by_size {:thumbnail
                                                    {:edit_mode "crop"
@@ -22,14 +22,10 @@
                                                     :crop {:x 100 :y 100 :w 600 :h 300}}}}}}]
       (let [result (crop/update-current-size cofx [:_ {:size_name "thumbnail"}])]
         (is (= [{:x 0 :y 0 :w 150 :h 150}]
-               (::crop/update-crop-params result)))
-        (is (nil?
-             (::crop/destroy-cropper result))))
+               (::crop/update-crop-params result))))
       (let [result (crop/update-current-size cofx [:_ {:size_name "medium"}])]
         (is (nil?
-             (::crop/update-crop-params result)))
-        (is (= []
-               (::crop/destroy-cropper result))))))
+             (::crop/update-crop-params result))))))
 
   (testing "it updates :current-size with the passed map"
     (let [cofx {:db {:current-size {:size_name "thumbnail"

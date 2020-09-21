@@ -72,15 +72,13 @@
 (defn update-current-size [{:keys [db]} [_ new-size]]
   (let [saved-size (get-in db [:img-config :params_by_size (size->name new-size)])
         saved-edit-mode (keyword (:edit_mode saved-size))
-        saved-crop (:crop saved-size)
-        crop-fx (if (= :crop saved-edit-mode)
-                  {::update-crop-params [saved-crop]}
-                  {::destroy-cropper []})]
-    (js/console.log "crop for" (:size_name new-size) (clj->js saved-crop))
-    (merge crop-fx {:db (assoc db
-                               :current-size new-size
-                               :edit-mode saved-edit-mode
-                               :crop-params saved-crop)})))
+        saved-crop (:crop saved-size)]
+    {:db (assoc db
+                :current-size new-size
+                :edit-mode saved-edit-mode
+                :crop-params saved-crop)
+     ::update-crop-params (when (= :crop saved-edit-mode)
+                            [saved-crop])}))
 
 (defmulti params-to-save :edit-mode)
 
@@ -129,7 +127,7 @@
 
 (comment
   (update-crop-params [{:w 980 :h 980 :x 1200 :y 700}])
-  (update-crop-params [{:w 2300 :h 2300 :x 450 :y 175}])
+  (update-crop-params [{:w 100 :h 100 :x 450 :y 175}])
   (r/flush)
 
   ;;
@@ -137,8 +135,6 @@
 
 (rf/reg-fx ::update-crop-params update-crop-params)
 
-(rf/reg-fx ::destroy-cropper (fn [_]
-                               (.destroy @!cropper)))
 
 ;; CropperJS params
 
