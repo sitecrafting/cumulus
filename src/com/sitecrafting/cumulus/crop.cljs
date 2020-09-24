@@ -161,7 +161,6 @@
                                     :w (js/Math.round (.-width params))
                                     :h (js/Math.round (.-height params))}])))
            :aspectRatio (when (> height 0) (/ width height))
-           ;; TODO enforce minimums based on actual current-size in proportion to rendered viewport
            :minCropBoxWidth width
            :minCropBoxHeight height
            :background false

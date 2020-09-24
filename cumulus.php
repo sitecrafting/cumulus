@@ -8,13 +8,11 @@
  * Author URI: https://www.sitecrafting.com
  *
  * TODO (MC3-186):
- * - load saved crop from params_by_size
- * - Crop/scale toggle
+ * - Persistence
+ * - SVG icons
  * - Flip horizontal/vertical transforms
- * - scale according to rendered vs. image_size proportions
  * - add click listeners to WP attachment arrow buttons
- * - Fix current-size bug (DONE?)
- * - Push AJAX requests down into CLJS (nice-to-have)
+ * - Push all AJAX requests down into CLJS (nice-to-have)
  * - nicer transitions between crop sizes (nice-to-have)
  * - Nicer styles (nice-to-have)
  */
