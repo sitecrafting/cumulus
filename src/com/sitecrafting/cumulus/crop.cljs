@@ -99,7 +99,6 @@
 
 (defn save-current-size [{:keys [db]}]
   (let [config (db->update-sizes-config db)]
-    (js/console.log (clj->js (get-in config [:params_by_size (size->name (:current-size db)) :crop])))
     {:db (assoc db :img-config config)
      ::save-current-size! config}))
 
@@ -118,17 +117,25 @@
                                                (js/console.log response))))))
 
 (defn update-crop-params [[params]]
-  (js/console.log ".setCropBoxData" (clj->js params))
-  (.setCropBoxData @!cropper
-                   #js {:width (:w params)
-                        :height (:h params)
-                        :top (:y params)
-                        :left (:x params)}))
+  ;; CropperJS understands the Crop Box size in terms of on-screen pixels,
+  ;; whereas Cloudinary crops are in terms of the pixel width/height/offsets
+  ;; of the entire full-size image. CropperJS gives us getImageData()
+  ;; (https://github.com/fengyuanchen/cropperjs/blob/master/README.md#getimagedata),
+  ;; which we can use to compute the ratio to size the saved crop dimensions down to
+  ;; their final rendered counterparts.
+  (let [img-data (.getImageData @!cropper)
+        ratio (/ (.-width img-data) (.-naturalWidth img-data))
+        ratio* #(js/Math.round (* ratio %))]
+    (.setCropBoxData @!cropper
+                     #js {:width  (ratio* (:w params))
+                          :height (ratio* (:h params))
+                          :top    (ratio* (:y params))
+                          :left   (ratio* (:x params))})))
 
 (comment
   (update-crop-params [{:w 200 :h 200 :x 10 :y 10}])
   (update-crop-params [{:w 350 :h 350 :x 5 :y 5}])
-  (r/flush)
+  (update-crop-params [{:w 1412 :h 1412 :x 1069 :y 568}])
 
   ;;
   )
@@ -291,4 +298,6 @@
          [:footer
           [:span.cumulus-control
            [:button {:on-click #(rf/dispatch [::save-current-size!])} "Save"]
-           [:button {:on-click #(rf/dispatch [::reset-current-size])} "Reset"]]]]]]]]))
+           [:button {:on-click #(rf/dispatch [::reset-current-size])} "Reset"]]
+          [:pre
+           (js/JSON.stringify (clj->js @(rf/subscribe [::crop-params])) nil 2)]]]]]]]))
