@@ -4,6 +4,16 @@ A WordPress plugin for managing custom image crops through Cloudinary.
 
 Store just the URLs for each crop of each image. Never worry about regenerating custom crops again: let Cloudinary take care of that for you, on the fly!
 
+## How it works
+
+Cumulus works by saving Cloudinary image URLs to the database for each of your images' crop sizes. It overwrites zero data, only saving extra data in the database. That means you can disable it any time and switch seamlessly back to serving your images from WordPress.
+
+Inspired by [YoImages](https://wordpress.org/plugins/yoimages/), the Cumulus user interface allows you to specify a custom crop for each image _at each size_, so you don't have to worry about awkward stuff like parts of faces being cut off in automatic crops. Cumulus uses Cloudinary's dynamic `lfill`, or "limited fill" setting, as a sensible fallback when no custom crop is specified for a given size. Plus, by serving your images from Cloudinary's Content Delivery Network, you can serve your images at some of the highest speeds available on the web, and reduce load on your servers.
+
+Here's an illustration of how it works internally:
+
+![The Cumulus comic shows a WP Admin user specifying that for their cat.jpb image at custom_size, they want a specific crop. A friendly robot representing the Cumulus plugin says YES HUMAN. Cumulus the Robot in turn asks WordPress to "please store cloudinary_url for attachment 123 at custom_size," and WordPress responds, "You got it!" Later, a user requests a page from your website. WordPress thinks to itself, "Better run the wp_get_attachment_image_src filter" and says "here ya go" to the end user, serving them HTML containing the cloudinary_url. Finally, the user's browser requests cloudinary_url from Cloudinary, and hence flow the bits comprising cat.jpg!](https://raw.githubusercontent.com/sitecrafting/cumulus/main/cumulus-comic.png)
+
 ## Development
 
 **TODO** revise this documentation.
