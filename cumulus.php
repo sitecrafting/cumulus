@@ -86,11 +86,11 @@ add_filter('wp_get_attachment_image_src', function($src, $id, $size) {
 }, 10, 3);
 
 
-/**
- * When the Attachment Detail modal opens, we need to fetch additional
- * data for the attachment being cropped. To do that, we call this endpoint.
- */
 add_action('rest_api_init', function() {
+  /**
+   * When the Attachment Detail modal opens, we need to fetch additional
+   * data for the attachment being cropped. To do that, we call this endpoint.
+   */
   register_rest_route('cumulus/v1', '/attachment/(?P<id>\d++)', [
     'methods'  => 'GET',
     'callback' => function($req) {
@@ -118,6 +118,26 @@ add_action('rest_api_init', function() {
         'detail'         => $meta,
         // NOTE: global sizes come through via wp_localize_script
       ];
+    },
+  ]);
+
+  /**
+   * Saving changes in the Customize Image Crops modal sends a POST request
+   * to this endpoint.
+   */
+  register_rest_route('cumulus/v1', '/attachment/(?P<id>\d++)', [
+    'methods'  => 'POST',
+    'callback' => function($req) {
+      $id     = $req->get_param('id');
+      $meta   = get_post_meta($id, 'cumulus_image', true) ?: [];
+      $params = $req->get_json_params();
+
+      update_post_meta($id, 'cumulus_image', array_merge($meta, [
+        'params_by_size' => $params,
+      ]));
+
+      error_log(var_export($req->get_json_params(), true));
+      return ['success' => 'true', 'params_by_size' => $params];
     },
   ]);
 });
@@ -192,10 +212,18 @@ add_action('add_attachment', function(int $id) {
       ]);
     }, []);
 
+    $paramsBySize = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes) {
+      return array_merge($sizes, [
+        $size => [
+          'edit_mode' => 'scale',
+        ],
+      ]);
+    }, []);
+
     update_post_meta($id, 'cumulus_image', [
       'cloudinary_id'   => $result['public_id'],
       'urls_by_size'    => $urlsBySize,
-      'params_by_size'  => [],
+      'params_by_size'  => $paramsBySize,
       'cloudinary_data' => $result,
     ]);
   }
