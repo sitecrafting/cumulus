@@ -91,6 +91,8 @@
 
 (defn unsaved-changes? [{:keys [img-config current-size] :as db}]
   (let [size (keyword (:size_name current-size))]
+    ;; TODO fix params-to-save ??
+    (js/console.log (clj->js (get-in img-config [:params_by_size size])) (clj->js (params-to-save db)))
     (not= (get-in img-config [:params_by_size size])
           (params-to-save db))))
 
@@ -178,6 +180,7 @@
 ;; Dimensions
 
 (rf/reg-sub ::crop-params :crop-params)
+(rf/reg-sub ::unsaved-changes? unsaved-changes?)
 (rf/reg-event-db ::set-crop-params (fn [db [_ params]]
                                      (assoc db :crop-params params)))
 
@@ -191,6 +194,11 @@
                            {:target-size [(:width current-size)
                                           (:height current-size)]}))))
 
+(comment
+  @(rf/subscribe [::unsaved-changes?])
+
+  ;;
+  )
 
 ;; Helpers
 
@@ -234,7 +242,9 @@
         edit-mode @(rf/subscribe [::edit-mode])
         cropping? (= :crop edit-mode)
         {:keys [width height] :as current-size} @(rf/subscribe [::current-size])
-        {:keys [sizes full_url full_width full_height]} @(rf/subscribe [::img-config])]
+        {:keys [sizes full_url full_width full_height]} @(rf/subscribe [::img-config])
+        confirm!? #(or (not @(rf/subscribe [::unsaved-changes?]))
+                       (js/confirm "Do you want to save your changes?"))]
     [:div.cumulus-crop-ui
      [:nav [:ul.cumulus-crop-sizes
             (map (fn [{:keys [size_name] :as size}]
@@ -247,7 +257,9 @@
                                        (.preventDefault e)
                                        ;; Clicking on the currently selected size should have no effect
                                        (when-not current?
-                                         (rf/dispatch [::update-current-size size])))}
+                                         (when (confirm!?)
+                                           (rf/dispatch [::save-current-size!])
+                                           (rf/dispatch [::update-current-size size]))))}
                        (size-name->label size_name)]]))
                  sizes)]]
 
