@@ -71,7 +71,8 @@
 
 (defn update-current-size [{:keys [db]} [_ new-size]]
   (let [saved-size (get-in db [:img-config :params_by_size (size->name new-size)])
-        saved-edit-mode (keyword (:edit_mode saved-size))
+        ;; Default to scale mode
+        saved-edit-mode (keyword (:edit_mode saved-size "scale"))
         saved-crop (:crop saved-size)]
     {:db (assoc db
                 :current-size new-size
@@ -91,8 +92,7 @@
 
 (defn unsaved-changes? [{:keys [img-config current-size] :as db}]
   (let [size (keyword (:size_name current-size))]
-    ;; TODO fix params-to-save ??
-    (js/console.log (clj->js (get-in img-config [:params_by_size size])) (clj->js (params-to-save db)))
+    (prn (get-in img-config [:params_by_size size]) (params-to-save db))
     (not= (get-in img-config [:params_by_size size])
           (params-to-save db))))
 
