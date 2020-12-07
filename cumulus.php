@@ -10,6 +10,7 @@
  * TODO (MC3-186):
  * - Persistence
  * - SVG icons
+ * - TODO fix saved-changes comparison
  * - Flip horizontal/vertical transforms
  * - add click listeners to WP attachment arrow buttons
  * - Push all AJAX requests down into CLJS (nice-to-have)
