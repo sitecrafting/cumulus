@@ -9,27 +9,27 @@ services:
       - composer install
       - ./scripts/setup-wordpress.sh
 
-  cljs:
-    type: compose
-
-    services:
-      image: acobster/lando-clojure:shadow-cljs
-      command: shadow-cljs server start
-
-      ports:
-        # Shadow CLJS HTTP services - dashboard, Websocket, and REPL
-        - '9630:9630'
-        # Shadow CLJS socket REPL
-        - '8009:8009'
-        # Test/Dev build ports
-        - '8007:8007'
-        - '8008:8008'
-
-    run:
-      # Clean up old builds. This means a longer build time each time,
-      # but a cleaner slate and less of a chance for bugs.
-      - rm -rf .shadow-cljs
-      - yarn
+  #  cljs:
+  #    type: compose
+  #
+  #    services:
+  #      image: acobster/lando-clojure:shadow-cljs
+  #      command: shadow-cljs server start
+  #
+  #      ports:
+  #        # Shadow CLJS HTTP services - dashboard, Websocket, and REPL
+  #        - '9630:9630'
+  #        # Shadow CLJS socket REPL
+  #        - '8009:8009'
+  #        # Test/Dev build ports
+  #        - '8007:8007'
+  #        - '8008:8008'
+  #
+  #    run:
+  #      # Clean up old builds. This means a longer build time each time,
+  #      # but a cleaner slate and less of a chance for bugs.
+  #      - rm -rf .shadow-cljs
+  #      - yarn
 
 tooling:
   install:
@@ -52,10 +52,10 @@ tooling:
     description: Tail the WP_DEBUG log
     service: appserver
 
-proxy:
-  cljs:
-    # The long-running shadow-cljs compiler server:
-    # Use this to watch files for dev builds.
-    - shadow-cljs.cumulus.lndo.site:9630
-    - dev.cumulus.lndo.site:8008
-    - test.cumulus.lndo.site:8007
+# proxy:
+#   cljs:
+#     # The long-running shadow-cljs compiler server:
+#     # Use this to watch files for dev builds.
+#     - shadow-cljs.cumulus.lndo.site:9630
+#     - dev.cumulus.lndo.site:8008
+#     - test.cumulus.lndo.site:8007
