@@ -90,7 +90,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defn cropperjs []
+(defn cropperjs
+  "Render the main cropping UI."
+  []
   (r/create-class
    {:reagent-render
     (fn []
@@ -112,12 +114,34 @@
       (when-let [img (js/document.getElementById "cumulus-img")]
         (reset! !cropper @(rf/subscribe [::cropper-js img]))))}))
 
+(defn crop-size-nav-item
+  "Given a size to display and the current size being edited,
+   renders a nav item for the given size. Prompts to save any
+   unsaved changes."
+  [{:keys [size_name] :as size} current-size]
+  (let [confirm!? #(or (not @(rf/subscribe [::c/unsaved-changes?]))
+                       (js/confirm "Do you want to save your changes?"))
+        current? (= (:size_name current-size) size_name)]
+    [:li {:class (when current? "cumulus-current-size")}
+     [:a {:name size_name
+          :href "#"
+          :on-click (fn [e]
+                      (.preventDefault e)
+                      ;; Clicking on the currently selected size should have no effect
+                      (when-not current?
+                        (when (confirm!?)
+                          (rf/dispatch [::c/save-current-size])
+                          (rf/dispatch [::c/update-current-size size]))))}
+      (size-name->label size_name)]]))
+
 (defn scaled-img []
   (let [img-url @(rf/subscribe [::c/cloudinary-url])]
     [:div.cumulus-scaled-img-container
      [:img#cumulus-img {:src img-url}]]))
 
-(defn debugger []
+(defn debugger
+  "Displays debug info."
+  []
   (let [info {:current-size @(rf/subscribe [::c/current-size])
               :new-params   @(rf/subscribe [::c/params-to-save])
               :saved-params  @(rf/subscribe [::c/saved-params])}]
@@ -132,29 +156,17 @@
         {:keys [width height] :as current-size} @(rf/subscribe [::c/current-size])
         {:keys [sizes full_url full_width full_height]} @(rf/subscribe [::c/img-config])
         unsaved-changes? @(rf/subscribe [::c/unsaved-changes?])
-        confirm!? #(or (not unsaved-changes?)
-                       (js/confirm "Do you want to save your changes?"))
         save-crop! #(when unsaved-changes?
                       (rf/dispatch [::c/save-current-size]))
         reset-crop! #(when unsaved-changes?
                        (rf/dispatch [::c/reset-current-size]))]
     [:div.cumulus-crop-ui
-     [:nav [:ul.cumulus-crop-sizes
-            (map (fn [{:keys [size_name] :as size}]
-                   (let [current? (= (:size_name current-size) size_name)]
-                     ^{:key size_name}
-                     [:li {:class (when current? "cumulus-current-size")}
-                      [:a {:name size_name
-                           :href "#"
-                           :on-click (fn [e]
-                                       (.preventDefault e)
-                                       ;; Clicking on the currently selected size should have no effect
-                                       (when-not current?
-                                         (when (confirm!?)
-                                           (rf/dispatch [::c/save-current-size!])
-                                           (rf/dispatch [::c/update-current-size size]))))}
-                       (size-name->label size_name)]]))
-                 sizes)]]
+     [:nav
+      [:ul.cumulus-crop-sizes
+       (map (fn [size]
+              ^{:key (:size_name size)}
+              [crop-size-nav-item size current-size])
+            sizes)]]
 
      [:div.stack
       [:div.columns
@@ -194,10 +206,12 @@
             [:a {:href "#"
                  :on-click (fn [e]
                              (.preventDefault e)
-                             (rf/dispatch [::c/update-edit-mode (if cropping? :scale :crop)]))}
+                             (rf/dispatch [::c/update-edit-mode
+                                           (if cropping? :scale :crop)]))}
              (if cropping? "Scale" "Crop")]]
-           [:li "Flip horizontal"]
-           [:li "Flip vertical"]]]
+           ;; TODO
+           #_[:li "Flip horizontal"]
+           #_[:li "Flip vertical"]]]
 
          [:footer
           [:span.cumulus-control
