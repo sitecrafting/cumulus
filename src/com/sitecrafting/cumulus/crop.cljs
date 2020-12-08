@@ -114,8 +114,9 @@
 (rf/reg-fx
  ::save-current-size!
  (fn [{:keys [attachment_id params_by_size]}]
-   (-> (js/fetch (str "/wp-json/v1/attachment/" attachment_id)
+   (-> (js/fetch (str "/wp-json/cumulus/v1/attachment/" attachment_id)
                  #js {:method "POST"
+                      :headers #js {"content-type" "application/json"}
                       :body (js/JSON.stringify (clj->js params_by_size))})
        (.then (fn [response]
                 (js/console.log response))))))
