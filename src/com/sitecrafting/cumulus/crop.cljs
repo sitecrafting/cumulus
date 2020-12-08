@@ -246,8 +246,13 @@
         cropping? (= :crop edit-mode)
         {:keys [width height] :as current-size} @(rf/subscribe [::current-size])
         {:keys [sizes full_url full_width full_height]} @(rf/subscribe [::img-config])
-        confirm!? #(or (not @(rf/subscribe [::unsaved-changes?]))
-                       (js/confirm "Do you want to save your changes?"))]
+        unsaved-changes? @(rf/subscribe [::unsaved-changes?])
+        confirm!? #(or (not unsaved-changes?)
+                       (js/confirm "Do you want to save your changes?"))
+        save! #(when unsaved-changes?
+                 (rf/dispatch [::save-current-size!]))
+        reset! #(when unsaved-changes?
+                  (rf/dispatch [::reset-current-size!]))]
     [:div.cumulus-crop-ui
      [:nav [:ul.cumulus-crop-sizes
             (map (fn [{:keys [size_name] :as size}]
@@ -312,7 +317,11 @@
 
          [:footer
           [:span.cumulus-control
-           [:button {:on-click #(rf/dispatch [::save-current-size!])} "Save"]
-           [:button {:on-click #(rf/dispatch [::reset-current-size])} "Reset"]]
+           [:button {:disabled (not unsaved-changes?)
+                     :on-click save!}
+            "Save"]
+           [:button {:disabled (not unsaved-changes?)
+                     :on-click reset!}
+            "Reset"]]
           [:pre
            (js/JSON.stringify (clj->js @(rf/subscribe [::crop-params])) nil 2)]]]]]]]))
