@@ -4,6 +4,18 @@
    [com.sitecrafting.cumulus.crop :as crop]))
 
 
+(deftest test-saved-params
+  (testing "it returns the saved params for the current size"
+    (let [sm {:x 0 :y 0 :w 150 :h 150}
+          med {:x 10 :y 15 :w 200 :h 200}
+          db {:img-config {:params_by_size
+                           {:small sm
+                            :medium med}}
+              :current-size {:size_name "small"}}]
+      (is (= sm (crop/saved-params db)))
+      (is (= med (crop/saved-params
+                  (assoc db :current-size {:size_name "medium"})))))))
+
 (deftest test-update-current-size
 
   (testing "it fires the ::update-crop-params effect"

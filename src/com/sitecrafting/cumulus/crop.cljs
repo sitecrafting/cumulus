@@ -82,6 +82,9 @@
      :ui/update-cropper-params (when (= :crop saved-edit-mode)
                                  [saved-crop])}))
 
+(defn saved-params [{:keys [img-config current-size]}]
+  (get-in img-config [:params_by_size (size->name current-size)]))
+
 ;; Compute the params to persist to the database given the current
 ;; edit mode.
 (defmulti params-to-save #(:edit-mode % :scale))
@@ -93,13 +96,11 @@
   {:edit_mode "crop"
    :crop crop-params})
 
-(defn unsaved-changes? [{:keys [img-config current-size] :as db}]
-  (let [size (keyword (:size_name current-size))
-        current-params (get-in img-config [:params_by_size size])
-        new-params (params-to-save db)]
-    (prn 'CURRENT current-params)
-    (prn 'NEW new-params)
-    (not= current-params new-params)))
+(defn set-crop-params [db [_ params]]
+  (assoc db :crop-params params))
+
+(defn unsaved-changes? [db]
+  (not= (saved-params db) (params-to-save db)))
 
 (defn db->update-sizes-config
   [{:keys [img-config current-size] :as db}]
@@ -148,8 +149,7 @@
 
 (rf/reg-sub ::crop-params :crop-params)
 (rf/reg-sub ::unsaved-changes? unsaved-changes?)
-(rf/reg-event-db ::set-crop-params (fn [db [_ params]]
-                                     (assoc db :crop-params params)))
+(rf/reg-event-db ::set-crop-params set-crop-params)
 
 ;; Compute the end result: the Cloudinary URL for our custom crop.
 
@@ -163,4 +163,6 @@
 
 (rf/reg-sub ::img-config :img-config)
 (rf/reg-sub ::current-size :current-size)
+(rf/reg-sub ::saved-params saved-params)
+(rf/reg-sub ::params-to-save params-to-save)
 (rf/reg-sub ::debug? :debug?)
