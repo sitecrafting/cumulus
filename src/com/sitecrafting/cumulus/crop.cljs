@@ -47,7 +47,8 @@
          params (get-in config [:params_by_size (keyword size_name)])
          mode (keyword (:edit_mode params))
          crop (:crop params)]
-     {:img-config config
+     {:debug? (:WP_DEBUG config)
+      :img-config config
       :current-size current-size
       :edit-mode mode
       :aspect-ratio (/ width height)
@@ -81,6 +82,8 @@
      :ui/update-cropper-params (when (= :crop saved-edit-mode)
                                  [saved-crop])}))
 
+;; Compute the params to persist to the database given the current
+;; edit mode.
 (defmulti params-to-save #(:edit-mode % :scale))
 
 (defmethod params-to-save :scale [_]
@@ -91,9 +94,12 @@
    :crop crop-params})
 
 (defn unsaved-changes? [{:keys [img-config current-size] :as db}]
-  (let [size (keyword (:size_name current-size))]
-    (not= (get-in img-config [:params_by_size size])
-          (params-to-save db))))
+  (let [size (keyword (:size_name current-size))
+        current-params (get-in img-config [:params_by_size size])
+        new-params (params-to-save db)]
+    (prn 'CURRENT current-params)
+    (prn 'NEW new-params)
+    (not= current-params new-params)))
 
 (defn db->update-sizes-config
   [{:keys [img-config current-size] :as db}]
@@ -157,3 +163,4 @@
 
 (rf/reg-sub ::img-config :img-config)
 (rf/reg-sub ::current-size :current-size)
+(rf/reg-sub ::debug? :debug?)

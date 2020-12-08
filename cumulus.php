@@ -297,6 +297,7 @@ add_action('admin_enqueue_scripts', function() {
     'sizes'   => $sizes,
     // TODO remove in favor of "cloud"
     'bucket'  => get_option('cumulus_cloud_name'),
+    'WP_DEBUG' => WP_DEBUG,
   ]);
 
   $css = CUMULUS_JS_DIR . 'main.js';

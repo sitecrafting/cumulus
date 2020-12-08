@@ -54,6 +54,7 @@
       img-elem
       #js {:crop (fn [event]
                    (let [params (.-detail event)]
+                     (prn params)
                      (rf/dispatch [::c/set-crop-params
                                    {:x (js/Math.round (.-x params))
                                     :y (js/Math.round (.-y params))
@@ -116,8 +117,13 @@
     [:div.cumulus-scaled-img-container
      [:img#cumulus-img {:src img-url}]]))
 
+(defn debugger []
+  [:pre
+   (js/JSON.stringify (clj->js @(rf/subscribe [::c/crop-params])) nil 2)])
+
 (defn crop-ui []
-  (let [img-url @(rf/subscribe [::c/cloudinary-url])
+  (let [debug? @(rf/subscribe [::c/debug?])
+        img-url @(rf/subscribe [::c/cloudinary-url])
         edit-mode @(rf/subscribe [::c/edit-mode])
         cropping? (= :crop edit-mode)
         {:keys [width height] :as current-size} @(rf/subscribe [::c/current-size])
@@ -198,5 +204,5 @@
            [:button {:disabled (not unsaved-changes?)
                      :on-click reset-crop!}
             "Reset"]]
-          [:pre
-           (js/JSON.stringify (clj->js @(rf/subscribe [::c/crop-params])) nil 2)]]]]]]]))
+          (when debug?
+            [debugger])]]]]]]))

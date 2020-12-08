@@ -21,16 +21,15 @@
   </main>
 
   <script>
+    /*
+     * GLOBAL CONFIG
+     *
+     * In production, this data comes from WordPress.
+     */
     var CUMULUS_CONFIG = {
       cloud: 'ctamayo',
       // TODO remove in favor of "cloud"
       bucket: 'ctamayo',
-      // version: 'v1596590505',
-      // folder: 'sc-test',
-      filename: 'cumulus-test/grasshopper.jpg',
-      full_url: 'https://res.cloudinary.com/ctamayo/image/upload/v1607377933/cumulus-test/grasshopper.jpg',
-      full_width: 4032,
-      full_height: 3024,
       sizes: [{
         size_name: "thumbnail",
         width: 150,
@@ -56,6 +55,7 @@
         width: 1980,
         height: 9999,
       }],
+      WP_DEBUG: true,
     };
 
     /*
