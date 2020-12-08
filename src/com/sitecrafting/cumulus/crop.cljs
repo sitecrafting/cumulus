@@ -3,10 +3,7 @@
   (:require
    [clojure.walk :refer [keywordize-keys]]
    [com.sitecrafting.cumulus.cloudinary :as cloud]
-   ["cropperjs" :as Cropper]
-   ["react-dom"]
-   [re-frame.core :as rf]
-   [reagent.core :as r]))
+   [re-frame.core :as rf]))
 
 
 (comment
