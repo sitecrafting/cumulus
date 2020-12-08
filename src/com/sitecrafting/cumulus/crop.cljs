@@ -81,7 +81,7 @@
      ::update-crop-params (when (= :crop saved-edit-mode)
                             [saved-crop])}))
 
-(defmulti params-to-save :edit-mode)
+(defmulti params-to-save #(:edit-mode % :scale))
 
 (defmethod params-to-save :scale [_]
   {:edit_mode "scale"})
