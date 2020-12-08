@@ -111,12 +111,14 @@
 (rf/reg-event-fx ::reset-current-size reset-current-size)
 (rf/reg-event-fx ::save-current-size! save-current-size)
 
-(rf/reg-fx ::save-current-size! (fn [{:keys [attachment_id params_by_size]}]
-                                  (-> (js/fetch (str "/wp-json/v1/attachment/" attachment_id)
-                                                #js {:method "POST"
-                                                     :body (js/JSON.stringify (clj->js params_by_size))})
-                                      (.then (fn [response]
-                                               (js/console.log response))))))
+(rf/reg-fx
+ ::save-current-size!
+ (fn [{:keys [attachment_id params_by_size]}]
+   (-> (js/fetch (str "/wp-json/v1/attachment/" attachment_id)
+                 #js {:method "POST"
+                      :body (js/JSON.stringify (clj->js params_by_size))})
+       (.then (fn [response]
+                (js/console.log response))))))
 
 (defn update-crop-params [[params]]
   ;; CropperJS understands the Crop Box size in terms of on-screen pixels,
@@ -257,6 +259,7 @@
                                        (.preventDefault e)
                                        ;; Clicking on the currently selected size should have no effect
                                        (when-not current?
+                                         (prn size)
                                          (when (confirm!?)
                                            (rf/dispatch [::save-current-size!])
                                            (rf/dispatch [::update-current-size size]))))}

@@ -179,7 +179,7 @@ add_action('add_attachment', function(int $id) {
   if ($result) {
     $registeredSizes = wp_get_registered_image_subsizes();
 
-    $cloud   = get_option('cumulus_cloud_name');
+    $cloud = get_option('cumulus_cloud_name');
 
     // TODO farm most of this out to a filter
     $urlsBySize = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes, $result, $cloud) {
