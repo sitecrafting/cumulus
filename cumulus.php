@@ -137,8 +137,10 @@ add_action('rest_api_init', function() {
         'params_by_size' => $params,
       ]));
 
-      error_log(var_export($req->get_json_params(), true));
-      return ['success' => 'true', 'params_by_size' => $params];
+      return [
+        'success'        => true,
+        'params_by_size' => $params,
+      ];
     },
   ]);
 });
