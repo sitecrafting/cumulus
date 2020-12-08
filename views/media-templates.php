@@ -9,7 +9,7 @@ jQuery(function($){
       com && com.sitecrafting && com.sitecrafting.cumulus && com.sitecrafting.cumulus.core
       && typeof (com.sitecrafting.cumulus.core.init) === 'function'
     ) {
-      com.sitecrafting.cumulus.core.init();
+      com.sitecrafting.cumulus.core.init(CUMULUS_CONFIG);
     }
   }
 
