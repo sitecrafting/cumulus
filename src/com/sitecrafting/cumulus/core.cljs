@@ -1,6 +1,7 @@
 (ns com.sitecrafting.cumulus.core
   (:require
-   [com.sitecrafting.cumulus.crop :as crop]
+   [com.sitecrafting.cumulus.crop :as c]
+   [com.sitecrafting.cumulus.ui :as ui]
    [reagent.dom :as dom]
    [re-frame.core :as rf]))
 
@@ -10,7 +11,7 @@
   "Mount the root UI component, crop/crop-ui"
   []
   (rf/clear-subscription-cache!)
-  (dom/render [crop/crop-ui]
+  (dom/render [ui/crop-ui]
               (js/document.getElementById "cumulus-crop-ui")))
 
 (defn ^:export init
@@ -21,5 +22,5 @@
   [cumulus-config]
   ;; Clear the currently mounted component, if any.
   (dom/unmount-component-at-node (js/document.getElementById "cumulus-crop-ui"))
-  (rf/dispatch-sync [::crop/init-db (js->clj cumulus-config)])
+  (rf/dispatch-sync [::c/init-db (js->clj cumulus-config)])
   (mount-root))

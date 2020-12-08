@@ -78,3 +78,7 @@
 .attachment-actions .edit-attachment {
   display: none;
 }
+
+button[disabled] {
+  cursor: not-allowed;
+}
