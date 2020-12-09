@@ -59,7 +59,7 @@
           :rotatable false
           :zoomable false})))
 
-(rf/reg-sub :ui/crop-data crop-data)
+(rf/reg-sub ::crop-data crop-data)
 (rf/reg-sub ::cropper-js cropper-instance)
 
 (rf/reg-fx :ui/update-cropper-params update-cropper-params)
