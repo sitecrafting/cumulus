@@ -18,6 +18,13 @@
 
 (defonce !cropper (r/atom nil))
 
+(defn crop-data [_ _]
+  (let [params (.getData @!cropper true)]
+    {:x (.-x params)
+     :y (.-y params)
+     :w (.-width params)
+     :h (.-height params)}))
+
 (defn update-cropper-params [[params]]
   ;; CropperJS understands the Crop Box size in terms of on-screen pixels,
   ;; whereas Cloudinary crops are in terms of the pixel width/height/offsets
@@ -34,40 +41,38 @@
                           :top    (ratio* (:y params))
                           :left   (ratio* (:x params))})))
 
+(defn cropper-instance
+  "Initialize a CropperJS instance.
+   See: https://github.com/fengyuanchen/cropperjs/blob/master/README.md"
+  [db [_ img-elem]]
+  (let [{:keys [width height]} (:current-size db)]
+    (Cropper.
+     img-elem
+     #js {:crop #(let [new-params @(rf/subscribe [::crop-data])]
+                   (rf/dispatch [::c/set-crop-params new-params]))
+          :aspectRatio (when (> height 0) (/ width height))
+          :minCropBoxWidth width
+          :minCropBoxHeight height
+          :background false
+          :scalable false
+          :movable false
+          :rotatable false
+          :zoomable false})))
+
+(rf/reg-sub :ui/crop-data crop-data)
+(rf/reg-sub ::cropper-js cropper-instance)
+
+(rf/reg-fx :ui/update-cropper-params update-cropper-params)
+
 (comment
   (update-cropper-params [{:w 200 :h 200 :x 10 :y 10}])
   (update-cropper-params [{:w 350 :h 350 :x 5 :y 5}])
   (update-cropper-params [{:w 1412 :h 1412 :x 1069 :y 568}])
 
+  @(rf/subscribe [::crop-data])
+
   ;;
   )
-
-(rf/reg-fx :ui/update-cropper-params update-cropper-params)
-
-;; Init the CropperJS instance.
-;; https://github.com/fengyuanchen/cropperjs/blob/master/README.md
-(rf/reg-sub
- ::cropper-js
- (fn [db [_ img-elem]]
-   (let [{:keys [width height]} (:current-size db)]
-     (Cropper.
-      img-elem
-      #js {:crop (fn [event]
-                   (let [params (.-detail event)]
-                     (prn 'CROP params)
-                     (rf/dispatch [::c/set-crop-params
-                                   {:x (js/Math.round (.-x params))
-                                    :y (js/Math.round (.-y params))
-                                    :w (js/Math.round (.-width params))
-                                    :h (js/Math.round (.-height params))}])))
-           :aspectRatio (when (> height 0) (/ width height))
-           :minCropBoxWidth width
-           :minCropBoxHeight height
-           :background false
-           :scalable false
-           :movable false
-           :rotatable false
-           :zoomable false}))))
 
 
 
