@@ -13,17 +13,26 @@
 
   js/CUMULUS_CONFIG
   @(rf/subscribe [::img-config])
-  ;; => {:bucket "sean-dean",
-  ;;     :version "v1596590505",
-  ;;     :folder "sc-test",
-  ;;     :filename "heron.jpg",
+  ;; => {
+  ;;     :attachment_id 26,
   ;;     :sizes
   ;;     [{:size_name "thumbnail", :width 150, :height 150}
   ;;      {:size_name "medium", :width 300, :height 300}
   ;;      {:size_name "medium_large", :width 768, :height 0}
   ;;      {:size_name "large", :width 1024, :height 1024}
   ;;      {:size_name "post-thumbnail", :width 1200, :height 9999}
-  ;;      {:size_name "twentytwenty-fullscreen", :width 1980, :height 9999}]}
+  ;;      {:size_name "twentytwenty-fullscreen", :width 1980, :height 9999}],
+  ;;     :bucket "ctamayo",
+  ;;     :cloud "ctamayo",
+  ;;     :params_by_size
+  ;;     {:thumbnail {:edit_mode "crop", :crop {:x 1582, :y 81, :w 2421, :h 2421}},
+  ;;      :medium {:edit_mode "crop", :crop {:x 1435, :y 164, :w 2419, :h 2419}},
+  ;;      :large {:edit_mode "scale"}},
+  ;;     :filename "cumulus-test/grasshopper.jpg",
+  ;;     :full_url "https://res.cloudinary.com/ctamayo/image/upload/v1607377933/cumulus-test/grasshopper.jpg",
+  ;;     :full_width 4032,
+  ;;     :full_height 3024,
+  ;;     :WP_DEBUG true}
 
   ;;
   )
@@ -129,6 +138,12 @@
 (rf/reg-event-fx ::reset-current-size reset-current-size)
 (rf/reg-event-fx ::save-current-size save-current-size)
 
+(rf/reg-sub ::img-config :img-config)
+(rf/reg-sub ::current-size :current-size)
+(rf/reg-sub ::saved-params saved-params)
+(rf/reg-sub ::params-to-save params-to-save)
+(rf/reg-sub ::debug? :debug?)
+
 (rf/reg-fx
  ::save-current-size!
  (fn [{:keys [attachment_id params_by_size]}]
@@ -160,9 +175,3 @@
                            crop-params
                            {:target-size [(:width current-size)
                                           (:height current-size)]}))))
-
-(rf/reg-sub ::img-config :img-config)
-(rf/reg-sub ::current-size :current-size)
-(rf/reg-sub ::saved-params saved-params)
-(rf/reg-sub ::params-to-save params-to-save)
-(rf/reg-sub ::debug? :debug?)
