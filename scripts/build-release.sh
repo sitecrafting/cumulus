@@ -36,45 +36,44 @@ function main() {
   # prompt for the letter "v"
   first_char="${RELEASE:0:1}"
   if ! [[ "$first_char" = 'v' ]] ; then
-    read -p "Prepend a 'v' (v${RELEASE})? (y/N) " prepend
+    if [[ -z $NO_INTERACTION ]] ; then
+      read -p "Prepend a 'v' (v${RELEASE})? (y/N) " prepend
+    fi
     if [[ "$prepend" = "y" ]] ; then
       RELEASE="v${RELEASE}"
     fi
   fi
 
-  # check tag
-  git rev-parse --verify "$RELEASE" 2>/dev/null
-  if ! [[ "$?" -eq 0 ]] ; then
+  if [[ -z $NO_INTERACTION ]] ; then
+    # check tag
+    git rev-parse --verify "$RELEASE" 2>/dev/null
+    if ! [[ "$?" -eq 0 ]] ; then
 
-    # prompt for creating a tag
-    read -p "'${RELEASE}' is not a Git revision. Create tag ${RELEASE}? (y/N) " create
-    if ! [[ "$create" = "y" ]] ; then
-      echo 'aborted.'
-      exit
-    fi
-
-    # prompt for annotation
-    read -p "Annotate this tag? (leave blank for no annotation) " annotation
-
-    if [[ "$annotation" ]] ; then
-      git tag "$RELEASE" -am "$annotation"
-    else
-      git tag "$RELEASE"
+      # prompt for creating a tag
+      read -p "'${RELEASE}' is not a Git revision. Create tag ${RELEASE}? (y/N) " create
+      if ! [[ "$create" = "y" ]] ; then
+        echo 'aborted.'
+        exit
+      fi
     fi
   fi
 
   backup_vendor
 
+  # Build JS dist.
+  shadow-cljs release main
+
   tar_name="cumulus-${RELEASE}.tar.gz"
   zip_name="cumulus-${RELEASE}.zip"
   composer install --no-dev --prefer-dist
 
-  # hackishly create a symlink cumulus directory, so that when extracted, the
-  # archives we create have a top-level directory
+  # Create a symlink cumulus directory, so that when extracted, the
+  # archives we create have a top-level directory.
   ln -sfn . cumulus
 
   # archive plugins distro files inside a top-level cumulus/ dir
   tar -cvzf "$tar_name" \
+    cumulus/dist \
     cumulus/cumulus.php \
     cumulus/vendor \
     cumulus/views \
@@ -83,6 +82,7 @@ function main() {
 
   # ditto for zip
   zip -r "${zip_name}" \
+    cumulus/dist \
     cumulus/cumulus.php \
     cumulus/vendor \
     cumulus/views \
@@ -96,7 +96,9 @@ function main() {
 
   echo "Created ${tar_name}, ${zip_name}"
 
-  create_github_release "$RELEASE" "$tar_name" "$zip_name"
+  if [[ -z $NO_INTERACTION ]] ; then
+    create_github_release "$RELEASE" "$tar_name" "$zip_name"
+  fi
 }
 
 function create_github_release() {
@@ -145,6 +147,10 @@ case $key in
     # show usage and bail
     usage
     exit
+    ;;
+  -n|--no-interaction)
+    NO_INTERACTION=1
+    shift # past flag
     ;;
   *)
     POSITIONAL+=("$1") # save it in an array for later
