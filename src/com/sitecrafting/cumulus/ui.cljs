@@ -48,7 +48,7 @@
   (let [{:keys [width height]} (:current-size db)]
     (Cropper.
      img-elem
-     #js {:crop #(let [new-params @(rf/subscribe [::crop-data])]
+     #js {:cropend #(let [new-params @(rf/subscribe [::crop-data])]
                    (rf/dispatch-sync [::c/set-crop-params new-params]))
           :aspectRatio (when (> height 0) (/ width height))
           :minCropBoxWidth width
