@@ -152,7 +152,7 @@
                       :headers #js {"content-type" "application/json"}
                       :body (js/JSON.stringify (clj->js params_by_size))})
        (.then (fn [response]
-                (js/console.log response))))))
+                #_(js/console.log response))))))
 
 ;; Edit mode (whether we're scaling vs. manually cropping)
 
