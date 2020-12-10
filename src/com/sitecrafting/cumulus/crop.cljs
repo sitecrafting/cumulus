@@ -166,6 +166,8 @@
 (rf/reg-sub ::unsaved-changes? unsaved-changes?)
 (rf/reg-event-db ::set-crop-params set-crop-params)
 
+(rf/reg-sub ::full-url #(get-in % [:img-config :full_url]))
+
 ;; Compute the end result: the Cloudinary URL for our custom crop.
 
 (rf/reg-sub

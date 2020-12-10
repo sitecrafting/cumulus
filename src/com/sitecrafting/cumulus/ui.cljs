@@ -1,11 +1,11 @@
 (ns com.sitecrafting.cumulus.ui
   (:require
    [clojure.string :refer [join split]]
-   ["cropperjs" :as Cropper]
+  ;  ["cropperjs" :as Cropper]
    [com.sitecrafting.cumulus.crop :as c]
    ["react-dom"]
-   [re-frame.core :as rf]
-   [reagent.core :as r]))
+   ["react-image-crop" :default ReactCrop]
+   [re-frame.core :as rf]))
 
 
 
@@ -128,8 +128,15 @@
 ;         (reset! !cropper @(rf/subscribe [::cropper-js img]))))}))
 
 (defn react-image-crop []
-  (let [url (:full_url @(rf/subscribe [::c/img-config]))]
-    [:img {:src url}]))
+  (let [url @(rf/subscribe [::c/full-url])]
+    [:> ReactCrop {:src url
+                   :crop {:unit "px"
+                          :x 100
+                          :y 100
+                          :width 150
+                          :height 150}
+                   :on-change #(prn 'changed)
+                   :on-complete #(prn 'complete)}]))
 
 (defn crop-size-nav-item
   "Given a size to display and the current size being edited,
