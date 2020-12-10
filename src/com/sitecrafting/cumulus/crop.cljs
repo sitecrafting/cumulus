@@ -52,7 +52,7 @@
    (let [config (keywordize-keys config)
          sizes (:sizes config)
          current-size (first sizes)
-         {:keys [width height size_name]} current-size
+         {:keys [size_name]} current-size
          params (get-in config [:params_by_size (keyword size_name)])
          mode (keyword (:edit_mode params))
          crop (:crop params)]
@@ -60,7 +60,6 @@
       :img-config config
       :current-size current-size
       :edit-mode mode
-      :aspect-ratio (/ width height)
       :dimensions nil
       :crop-params crop
       :sizes sizes})))
@@ -82,6 +81,10 @@
 
 (defn crop-params [{:keys [crop-params aspect-ratio]}]
   (assoc crop-params :aspect aspect-ratio))
+
+(defn aspect-ratio [{:keys [current-size]}]
+  (let [{:keys [width height]} current-size]
+    (when (> height 0) (/ width height))))
 
 (defn render-scaling-factor
   "Compute the natural -> rendered scaling factor for an accurate crop area."
@@ -182,7 +185,7 @@
  [(rf/inject-cofx :dimensions)]
  (fn [{:keys [dimensions db]}]
    {:db (assoc db :dimensions dimensions)}))
-(rf/reg-sub ::aspect-ratio :aspect-ratio)
+(rf/reg-sub ::aspect-ratio aspect-ratio)
 (rf/reg-sub ::dimensions :dimensions)
 (rf/reg-sub ::crop-params crop-params)
 (rf/reg-sub ::unsaved-changes? unsaved-changes?)

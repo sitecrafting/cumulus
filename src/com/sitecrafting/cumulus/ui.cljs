@@ -145,11 +145,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn react-image-crop []
-  (let [url @(rf/subscribe [::c/full-url])]
+  (let [url @(rf/subscribe [::c/full-url])
+        aspect-ratio @(rf/subscribe [::c/aspect-ratio])
+        {:keys [w h x y]} @(rf/subscribe [::c/crop-params])]
     [:> ReactCrop {:src url
-                   :on-image-loaded #(do (reset! !img %) (prn @!img) (rf/dispatch [::c/image-loaded]))
-                   :crop @(rf/subscribe [::c/crop-params])
-                   :on-change #(rf/dispatch-sync [::c/set-crop-params (js->clj %)])}]))
+                   :on-image-loaded #(do
+                                       (reset! !img %)
+                                       (rf/dispatch [::c/image-loaded]))
+                   :crop #js {:width (js/Math.round w)
+                              :height (js/Math.round h)
+                              :x (js/Math.round x)
+                              :y (js/Math.round y)
+                              :aspect aspect-ratio}
+                   :on-change #(rf/dispatch-sync
+                                [::c/set-crop-params
+                                 {:w (.-width %)
+                                  :h (.-height %)
+                                  :x (.-x %)
+                                  :y (.-y %)}])}]))
 
 (defn crop-size-nav-item
   "Given a size to display and the current size being edited,

@@ -44,6 +44,22 @@
       (is (= {:w 400 :h 300 :x 10 :y 20}
              (crop/crop->cloudinary-params db))))))
 
+#_(deftest test-params-to-save
+
+  (testing "it accounts for scaling factor"
+    (let [db {:edit-mode :crop
+              ;; scaling factor of 2, meaning we want to double
+              ;; the crop dimensions to get the actual Cloudinary
+              ;; pre-resize transform dimensions.
+              :dimensions {:rendered-width 500
+                           :natural-width 1000}
+              :crop-params {:width 200
+                            :height 150
+                            :x 5
+                            :y 10}}]
+      (is (= {:edit_mode "crop" :crop {:w 400 :h 300 :x 10 :y 20}}
+             (crop/params-to-save db))))))
+
 (deftest test-saved-params
 
   (testing "it returns the saved params for the current size"
@@ -92,7 +108,7 @@
   (testing "it derives request data from :current-size, :edit-mode, and :crop-params"
     (let [db {:img-config {:attachment_id 25
                            :params_by_size {:thumbnail {:edit_mode "crop"
-                                                        :crop {:x 0 :y 0 :w 150 :h 150}}
+                                                        :crop {:x 0 :y 0 :w 300 :h 150}}
                                             :medium {:edit_mode "scale"}
                                             :large {:edit_mode "scale"}}}
               :edit-mode :crop
@@ -103,7 +119,7 @@
 
       (is (= {:attachment_id 25
               :params_by_size {:thumbnail {:edit_mode "crop"
-                                           :crop {:x 0 :y 0 :w 150 :h 150}}
+                                           :crop {:x 0 :y 0 :w 300 :h 150}}
                                :medium {:edit_mode "scale"}
                                :large {:edit_mode "crop"
                                        :crop {:x 50 :y 200 :w 2000 :h 2000}}}}
@@ -114,16 +130,17 @@
                                            :crop {:x 50 :y 200 :w 2000 :h 2000}}
                                :medium {:edit_mode "scale"}
                                :large {:edit_mode "scale"}}}
-             (crop/db->update-sizes-config (assoc db
-                                               :current-size {:size_name "thumbnail"}))))
+             (crop/db->update-sizes-config
+              (assoc db :current-size {:size_name "thumbnail"}))))
 
       (is (= {:attachment_id 25
               :params_by_size {:thumbnail {:edit_mode "scale"}
                                :medium {:edit_mode "scale"}
                                :large {:edit_mode "scale"}}}
-             (crop/db->update-sizes-config (assoc db
-                                               :current-size {:size_name "thumbnail"}
-                                               :edit-mode :scale)))))))
+             (crop/db->update-sizes-config
+              (assoc db
+                     :current-size {:size_name "thumbnail"}
+                     :edit-mode :scale)))))))
 
 (deftest test-unsaved-changes?
 
