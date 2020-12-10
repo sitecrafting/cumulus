@@ -8,11 +8,14 @@
  * Author URI: https://www.sitecrafting.com
  *
  * TODO (MC3-186):
- * - Persistence
- * - SVG icons
- * - WHERE DO THE EXTRA Y PIXELS COME FROM??
+ * - port to react-image-crop? D:
  * - Flip horizontal/vertical transforms
  * - add click listeners to WP attachment arrow buttons
+ * - hook for MIME type
+ * - hook for crop sizes to manage
+ * - phpunit tests
+ * - WHERE DO THE EXTRA Y PIXELS COME FROM?? (later)
+ * - SVG icons (nice-to-have)
  * - Push all AJAX requests down into CLJS (nice-to-have)
  * - nicer transitions between crop sizes (nice-to-have)
  * - Nicer styles (nice-to-have)
