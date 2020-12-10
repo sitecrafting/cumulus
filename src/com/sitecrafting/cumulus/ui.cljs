@@ -72,36 +72,6 @@
 
 ; (rf/reg-fx :ui/update-cropper-params update-cropper-params)
 
-(comment
-  (update-cropper-params [{:w 200 :h 200 :x 10 :y 10}])
-  (update-cropper-params [{:w 350 :h 350 :x 5 :y 5}])
-  (update-cropper-params [{:w 1412 :h 1412 :x 1069 :y 568}])
-
-  @(rf/subscribe [::crop-data])
-
-  ;;
-  )
-
-
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;
-   ;;                       ;;
-  ;;        Helpers        ;;
- ;;                       ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(defn size-name->label [s]
-  (join " " (split s #"[-_]")))
-
-
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;
-   ;;                       ;;
-  ;;      Components       ;;
- ;;                       ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 ; (defn cropperjs
 ;   "Render the main cropping UI."
@@ -127,16 +97,57 @@
 ;       (when-let [img (js/document.getElementById "cumulus-img")]
 ;         (reset! !cropper @(rf/subscribe [::cropper-js img]))))}))
 
+;(comment
+;  (update-cropper-params [{:w 200 :h 200 :x 10 :y 10}])
+;  (update-cropper-params [{:w 350 :h 350 :x 5 :y 5}])
+;  (update-cropper-params [{:w 1412 :h 1412 :x 1069 :y 568}])
+;
+;  @(rf/subscribe [::crop-data])
+;
+;  ;;
+;  )
+
+
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;;                          ;;
+  ;;   Helpers & Co-Effects   ;;
+ ;;                          ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(def !img (atom nil))
+
+(defn dimensions-cofx
+  "Inject the natural and rendered image dimensions into the cofx map."
+  [cofx _]
+  (let [img @!img]
+    (assoc cofx :dimensions {:natural-width (.-naturalWidth img)
+                             :natural-height (.-naturalHeight img)
+                             :rendered-width (.-width img)
+                             :rendered-height (.-height img)})))
+
+(rf/reg-cofx :dimensions dimensions-cofx)
+
+
+(defn size-name->label [s]
+  (join " " (split s #"[-_]")))
+
+
+
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;;                       ;;
+  ;;      Components       ;;
+ ;;                       ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn react-image-crop []
   (let [url @(rf/subscribe [::c/full-url])]
     [:> ReactCrop {:src url
-                   :crop {:unit "px"
-                          :x 100
-                          :y 100
-                          :width 150
-                          :height 150}
-                   :on-change #(prn 'changed)
-                   :on-complete #(prn 'complete)}]))
+                   :on-image-loaded #(reset! !img %)
+                   :crop @(rf/subscribe [::c/crop-params])
+                   :on-change #(rf/dispatch-sync [::c/set-crop-params (js->clj %)])
+                   :on-complete #(prn 'complete %)}]))
 
 (defn crop-size-nav-item
   "Given a size to display and the current size being edited,

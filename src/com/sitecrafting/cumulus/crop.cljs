@@ -79,6 +79,11 @@
 (defn- size->name [size]
   (keyword (:size_name size)))
 
+(defn render-scaling-factor
+  "Compute the natural -> rendered scaling factor for an accurate crop area."
+  [{:keys [dimensions]}]
+  (/ (:natural-width dimensions) (:rendered-width dimensions)))
+
 (defn update-current-size [{:keys [db]} [_ new-size]]
   (let [saved-size (get-in db [:img-config :params_by_size (size->name new-size)])
         ;; Default to scale mode
