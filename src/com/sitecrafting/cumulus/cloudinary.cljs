@@ -21,7 +21,7 @@
 
 
 ;; TODO we may need version if we need to fall back to the full URL.
-(defn params->url [{:keys [bucket filename transforms #_version]}]
+(defn- params->url [{:keys [bucket filename transforms #_version]}]
   (let [segments (conj [bucket "image/upload"]
                        (join "/" (map params->url-segments transforms))
                        filename)]
