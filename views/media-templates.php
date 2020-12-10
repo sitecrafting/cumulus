@@ -37,7 +37,6 @@ jQuery(function($){
     if (location.search) {
       var matches = /item=([0-9]+)/.exec(location.search);
       if (matches.length > 1) {
-        // TODO for some reason it's sending multiple requests??
         $.ajax('/wp-json/cumulus/v1/attachment/' + matches[1], {
           success: function(data) {
             // Check again in case the UI was already loaded.

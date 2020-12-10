@@ -49,7 +49,7 @@
     (Cropper.
      img-elem
      #js {:cropend #(let [new-params @(rf/subscribe [::crop-data])]
-                   (rf/dispatch-sync [::c/set-crop-params new-params]))
+                      (rf/dispatch-sync [::c/set-crop-params new-params]))
           :aspectRatio (when (> height 0) (/ width height))
           :minCropBoxWidth width
           :minCropBoxHeight height
@@ -124,7 +124,8 @@
    renders a nav item for the given size. Prompts to save any
    unsaved changes."
   [{:keys [size_name] :as size} current-size]
-  (let [confirm!? #(or (not @(rf/subscribe [::c/unsaved-changes?]))
+  (let [unsaved-changes? @(rf/subscribe [::c/unsaved-changes?])
+        confirm!? #(or (not unsaved-changes?)
                        (js/confirm "Do you want to save your changes?"))
         current? (= (:size_name current-size) size_name)]
     [:li {:class (when current? "cumulus-current-size")}
@@ -133,9 +134,13 @@
           :on-click (fn [e]
                       (.preventDefault e)
                       ;; Clicking on the currently selected size should have no effect
-                      (when-not current?
-                        (when (confirm!?)
-                          (rf/dispatch [::c/save-current-size])
+                      (when (not current?)
+                        ;; Prompt to save any unsaved changes, or switch immediately
+                        ;; if there aren't any.
+                        (if unsaved-changes?
+                          (when (confirm!?)
+                            (rf/dispatch [::c/save-current-size])
+                            (rf/dispatch [::c/update-current-size size]))
                           (rf/dispatch [::c/update-current-size size]))))}
       (size-name->label size_name)]]))
 
