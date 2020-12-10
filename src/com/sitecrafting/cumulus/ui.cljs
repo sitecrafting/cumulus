@@ -202,7 +202,7 @@
         save-crop! #(when unsaved-changes?
                       (rf/dispatch [::c/save-current-size]))
         reset-crop! #(when unsaved-changes?
-                       (rf/dispatch [::c/reset-current-size]))]
+                       (rf/dispatch [::c/update-current-size current-size]))]
     [:div.cumulus-crop-ui
      [:nav
       [:ul.cumulus-crop-sizes

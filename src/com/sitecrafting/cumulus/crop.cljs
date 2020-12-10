@@ -100,17 +100,15 @@
      :x (scale (:x params))
      :y (scale (:y params))}))
 
-(defn update-current-size [{:keys [db]} [_ new-size]]
-  (let [saved-size (get-in db [:img-config :params_by_size (size->name new-size)])
+(defn update-current-size [{:keys [img-config] :as db} [_ new-size]]
+  (let [saved-size (get-in img-config [:params_by_size (size->name new-size)])
         ;; Default to scale mode
         saved-edit-mode (keyword (:edit_mode saved-size "scale"))
         saved-crop (:crop saved-size)]
-    {:db (assoc db
-                :current-size new-size
-                :edit-mode saved-edit-mode
-                :crop-params saved-crop)
-     :ui/update-cropper-params (when (= :crop saved-edit-mode)
-                                 [saved-crop])}))
+    (assoc db
+           :current-size new-size
+           :edit-mode saved-edit-mode
+           :crop-params saved-crop)))
 
 (defn saved-params [{:keys [img-config current-size]}]
   (get-in img-config [:params_by_size (size->name current-size)]))
@@ -143,9 +141,6 @@
     {:db (assoc db :img-config config)
      ::save-current-size! config}))
 
-(defn reset-current-size [{:keys [db]}]
-  {:dispatch [::update-current-size (:current-size db)]})
-
 
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -155,8 +150,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(rf/reg-event-fx ::update-current-size update-current-size)
-(rf/reg-event-fx ::reset-current-size reset-current-size)
+(rf/reg-event-db ::update-current-size update-current-size)
 (rf/reg-event-fx ::save-current-size save-current-size)
 
 (rf/reg-sub ::img-config :img-config)
