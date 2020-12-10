@@ -128,6 +128,9 @@
 
 (rf/reg-cofx :dimensions dimensions-cofx)
 
+;; TODO readjust crop params
+(.addEventListener js/window "resize" #(rf/dispatch [::c/image-loaded]))
+
 
 (defn size-name->label [s]
   (join " " (split s #"[-_]")))
@@ -144,10 +147,9 @@
 (defn react-image-crop []
   (let [url @(rf/subscribe [::c/full-url])]
     [:> ReactCrop {:src url
-                   :on-image-loaded #(reset! !img %)
+                   :on-image-loaded #(do (reset! !img %) (prn @!img) (rf/dispatch [::c/image-loaded]))
                    :crop @(rf/subscribe [::c/crop-params])
-                   :on-change #(rf/dispatch-sync [::c/set-crop-params (js->clj %)])
-                   :on-complete #(prn 'complete %)}]))
+                   :on-change #(rf/dispatch-sync [::c/set-crop-params (js->clj %)])}]))
 
 (defn crop-size-nav-item
   "Given a size to display and the current size being edited,
@@ -184,7 +186,8 @@
   []
   (let [info {:current-size @(rf/subscribe [::c/current-size])
               :new-params   @(rf/subscribe [::c/params-to-save])
-              :saved-params  @(rf/subscribe [::c/saved-params])}]
+              :saved-params  @(rf/subscribe [::c/saved-params])
+              :dimensions @(rf/subscribe [::c/dimensions])}]
     [:pre
      (js/JSON.stringify (clj->js info) nil 2)]))
 

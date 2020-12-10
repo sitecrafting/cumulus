@@ -11,6 +11,39 @@
                              :natural-width 1000}}]
       (is (= 2 (crop/render-scaling-factor cofx))))))
 
+(deftest test-crop-params
+
+  (testing "it accounts for both manually set crop params and deterministic aspect ratio"
+    (let [db {:aspect-ratio 1.5
+              :crop-params {:unit "px"
+                            :x 10
+                            :y 10
+                            :width 150
+                            :height 150
+                            :aspect nil}}]
+      (is (= {:unit "px"
+              :x 10
+              :y 10
+              :width 150
+              :height 150
+              :aspect 1.5}
+             (crop/crop-params db))))))
+
+(deftest test-crop->cloudinary-params
+
+  (testing "it returns the current full-size / rendered ratio"
+    (let [db {;; scaling factor of 2, meaning we want to double
+              ;; the crop dimensions to get the actual Cloudinary
+              ;; pre-resize transform dimensions.
+              :dimensions {:rendered-width 500
+                           :natural-width 1000}
+              :crop-params {:width 200
+                            :height 150
+                            :x 5
+                            :y 10}}]
+      (is (= {:w 400 :h 300 :x 10 :y 20}
+             (crop/crop->cloudinary-params db))))))
+
 (deftest test-saved-params
 
   (testing "it returns the saved params for the current size"

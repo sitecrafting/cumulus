@@ -61,6 +61,7 @@
       :current-size current-size
       :edit-mode mode
       :aspect-ratio (/ width height)
+      :dimensions nil
       :crop-params crop
       :sizes sizes})))
 
@@ -79,10 +80,25 @@
 (defn- size->name [size]
   (keyword (:size_name size)))
 
+(defn crop-params [{:keys [crop-params aspect-ratio]}]
+  (assoc crop-params :aspect aspect-ratio))
+
 (defn render-scaling-factor
   "Compute the natural -> rendered scaling factor for an accurate crop area."
   [{:keys [dimensions]}]
   (/ (:natural-width dimensions) (:rendered-width dimensions)))
+
+(defn crop->cloudinary-params
+  "Translate the raw ReactCrop params (as a map) to the params to passed to
+   cloudinary/crop->url."
+  [{:keys [crop-params] :as db}]
+  (let [params (keywordize-keys crop-params)
+        scaling-factor (render-scaling-factor db)
+        scale #(js/Math.round (* scaling-factor %))]
+    {:w (scale (:width params))
+     :h (scale (:height params))
+     :x (scale (:x params))
+     :y (scale (:y params))}))
 
 (defn update-current-size [{:keys [db]} [_ new-size]]
   (let [saved-size (get-in db [:img-config :params_by_size (size->name new-size)])
@@ -167,7 +183,14 @@
 
 ;; Dimensions
 
-(rf/reg-sub ::crop-params :crop-params)
+(rf/reg-event-fx
+ ::image-loaded
+ [(rf/inject-cofx :dimensions)]
+ (fn [{:keys [dimensions db]}]
+   {:db (assoc db :dimensions dimensions)}))
+(rf/reg-sub ::aspect-ratio :aspect-ratio)
+(rf/reg-sub ::dimensions :dimensions)
+(rf/reg-sub ::crop-params crop-params)
 (rf/reg-sub ::unsaved-changes? unsaved-changes?)
 (rf/reg-event-db ::set-crop-params set-crop-params)
 
@@ -177,8 +200,8 @@
 
 (rf/reg-sub
  ::cloudinary-url
- (fn [{:keys [crop-params img-config current-size]}]
+ (fn [{:keys [img-config current-size] :as db}]
    (cloud/crop->url (merge img-config
-                           crop-params
+                           (crop->cloudinary-params db)
                            {:target-size [(:width current-size)
                                           (:height current-size)]}))))
