@@ -79,9 +79,6 @@
 (defn- size->name [size]
   (keyword (:size_name size)))
 
-(defn crop-params [{:keys [crop-params aspect-ratio]}]
-  (assoc crop-params :aspect aspect-ratio))
-
 (defn aspect-ratio [{:keys [current-size]}]
   (let [{:keys [width height]} current-size]
     (when (> height 0) (/ width height))))
@@ -187,7 +184,7 @@
    {:db (assoc db :dimensions dimensions)}))
 (rf/reg-sub ::aspect-ratio aspect-ratio)
 (rf/reg-sub ::dimensions :dimensions)
-(rf/reg-sub ::crop-params crop-params)
+(rf/reg-sub ::crop-params :crop-params)
 (rf/reg-sub ::unsaved-changes? unsaved-changes?)
 (rf/reg-event-db ::set-crop-params set-crop-params)
 
