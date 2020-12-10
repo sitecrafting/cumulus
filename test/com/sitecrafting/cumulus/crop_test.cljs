@@ -4,12 +4,12 @@
    [com.sitecrafting.cumulus.crop :as crop]))
 
 
-(deftest test-render-scaling-factor
+(deftest test-scaling-factor
 
   (testing "it returns the current full-size / rendered ratio"
     (let [cofx {:dimensions {:rendered-width 500
                              :natural-width 1000}}]
-      (is (= 2 (crop/render-scaling-factor cofx))))))
+      (is (= 2 (crop/scaling-factor cofx))))))
 
 (deftest test-crop->cloudinary-params
 

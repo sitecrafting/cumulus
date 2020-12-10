@@ -83,7 +83,7 @@
   (let [{:keys [width height]} current-size]
     (when (> height 0) (/ width height))))
 
-(defn render-scaling-factor
+(defn scaling-factor
   "Compute the natural -> rendered scaling factor for an accurate crop area."
   [{:keys [dimensions]}]
   (/ (:natural-width dimensions) (:rendered-width dimensions)))
@@ -93,7 +93,7 @@
    cloudinary/crop->url."
   [{:keys [crop-params] :as db}]
   (let [params (keywordize-keys crop-params)
-        scaling-factor (render-scaling-factor db)
+        scaling-factor (scaling-factor db)
         scale #(js/Math.round (* scaling-factor %))]
     {:w (scale (:width params))
      :h (scale (:height params))
