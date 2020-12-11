@@ -158,6 +158,15 @@ add_action('add_attachment', function(int $id) {
     return;
   }
 
+  $supportedTypes = apply_filters(
+    'cumulus/mime_types_to_upload',
+    array_values(get_allowed_mime_types())
+  );
+  if (!in_array(mime_content_type($path), $supportedTypes)) {
+    // Not a MIME type the user wants to support
+    return;
+  }
+
   $uploadFolder = get_option('cumulus_upload_folder') ?: null;
 
   static $uploader;
