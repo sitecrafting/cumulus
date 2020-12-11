@@ -9,106 +9,6 @@
 
 
 
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;
-   ;;                       ;;
-  ;;   CropperJS Controls  ;;
- ;;                       ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-; (defonce !cropper (r/atom nil))
-
-; (defn crop-data [_ _]
-;   (let [params (.getData @!cropper true)]
-;     {:x (.-x params)
-;      :y (.-y params)
-;      :w (.-width params)
-;      :h (.-height params)}))
-
-; (defn update-cropper-params [[params]]
-;   ;; CropperJS understands the Crop Box size in terms of on-screen pixels,
-;   ;; whereas Cloudinary crops are in terms of the pixel width/height/offsets
-;   ;; of the entire full-size image. CropperJS gives us getImageData()
-;   ;; (https://github.com/fengyuanchen/cropperjs/blob/master/README.md#getimagedata),
-;   ;; which we can use to compute the ratio to size the saved crop dimensions down to
-;   ;; their final rendered counterparts.
-;   (let [img-data (.getImageData @!cropper)
-;         ratio (/ (.-width img-data) (.-naturalWidth img-data))
-;         ratio* #(js/Math.round (* ratio %))]
-;     (.setCropBoxData @!cropper
-;                      #js {:width  (ratio* (:w params))
-;                           :height (ratio* (:h params))
-;                           :top    (ratio* (:y params))
-;                           :left   (ratio* (:x params))})))
-
-; (defn cropper-instance
-;   "Initialize a CropperJS instance.
-;    See: https://github.com/fengyuanchen/cropperjs/blob/master/README.md"
-;   [db [_ img-elem]]
-;   (let [{:keys [width height]} (:current-size db)]
-;     (Cropper.
-;      img-elem
-;      #js {:cropend #(let [new-params @(rf/subscribe [::crop-data])]
-;                       (rf/dispatch-sync [::c/set-crop-params new-params]))
-;           :aspectRatio (when (> height 0) (/ width height))
-;           :minCropBoxWidth width
-;           :minCropBoxHeight height
-;           :background false
-;           :scalable false
-;           :movable false
-;           :rotatable false
-;           :zoomable false})))
-
-; (rf/reg-sub ::crop-data crop-data)
-; (rf/reg-sub ::cropper-js cropper-instance)
-
-; (rf/reg-fx :ui/update-cropper-params update-cropper-params)
-
-
-
-
-; (rf/reg-sub ::crop-data crop-data)
-; (rf/reg-sub ::cropper-js cropper-instance)
-
-; (rf/reg-fx :ui/update-cropper-params update-cropper-params)
-
-
-; (defn cropperjs
-;   "Render the main cropping UI."
-;   []
-;   (r/create-class
-;    {:reagent-render
-;     (fn []
-;       (let [{:keys [full_url]} @(rf/subscribe [::c/img-config])
-;             ;; We don't strictly need this, but it's a simple way
-;             ;; to get this component to update when we switch between sizes,
-;             ;; so we can dispatch ::c/update-current-size
-;             current-size (:size_name @(rf/subscribe [::c/current-size]))]
-;         [:div#cumulus-cropperjs-container {:data-size (:size_name current-size)}
-;          ;; By putting the image in here, we tell CropperJS to inject its UI here.
-;          [:img#cumulus-img {:src full_url}]]))
-
-;     :component-did-update
-;     (fn []
-;       (rf/dispatch [::c/update-current-size @(rf/subscribe [::c/current-size])]))
-
-;     :component-did-mount
-;     (fn []
-;       (when-let [img (js/document.getElementById "cumulus-img")]
-;         (reset! !cropper @(rf/subscribe [::cropper-js img]))))}))
-
-;(comment
-;  (update-cropper-params [{:w 200 :h 200 :x 10 :y 10}])
-;  (update-cropper-params [{:w 350 :h 350 :x 5 :y 5}])
-;  (update-cropper-params [{:w 1412 :h 1412 :x 1069 :y 568}])
-;
-;  @(rf/subscribe [::crop-data])
-;
-;  ;;
-;  )
-
-
-
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;;                          ;;
   ;;   Helpers & Co-Effects   ;;
@@ -236,7 +136,6 @@
       [:div.columns
        [:div.col-60
         (if cropping?
-          ;[cropperjs]
           [react-image-crop]
           [scaled-img])]
 
