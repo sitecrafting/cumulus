@@ -317,6 +317,6 @@ add_action('admin_enqueue_scripts', function() {
   ]);
 
   $css = CUMULUS_JS_DIR . 'main.js';
-  wp_enqueue_style('cropper-css', plugin_dir_url(__FILE__) . 'dist/css/cropper.min.css', [], '1.5.7');
+  wp_enqueue_style('cropper-css', plugin_dir_url(__FILE__) . 'dist/css/react-image-crop.css', [], '1.5.7');
   wp_enqueue_style('cumulus-css', plugin_dir_url(__FILE__) . 'dist/css/main.css', ['cropper-css'], filemtime($css));
 });

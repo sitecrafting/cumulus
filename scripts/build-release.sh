@@ -63,6 +63,9 @@ function main() {
   # Build JS dist.
   shadow-cljs release main
 
+  # Make sure we have the latest CSS for ReactCrop
+  cp node_modules/react-image-crop/dist/ReactCrop.css dist/css/react-image-crop.css
+
   tar_name="cumulus-${RELEASE}.tar.gz"
   zip_name="cumulus-${RELEASE}.zip"
   composer install --no-dev --prefer-dist
