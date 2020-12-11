@@ -27,16 +27,19 @@
                        filename)]
     (str "https://res.cloudinary.com/" (join "/" (filter seq segments)))))
 
-(defn crop->url [params]
+(defmulti url :mode)
+
+(defmethod url :crop [params]
   (let [manual-crop (select-keys params [:x :y :w :h])
         [w h] (:target-size params)
         scale {:w w :h h :c "scale"}]
     (params->url (merge params {:transforms [manual-crop scale]}))))
 
-(defn scale->url [params]
-  (let [scaling-strategy (:c params "lfill")
-        crop (merge (select-keys params [:w :h])
-                    {:c scaling-strategy})]
+(defmethod url :scale [params]
+  (let [[w h] (:target-size params)
+        crop {:w w
+              :h h
+              :c (:c params "lfill")}]
     (params->url (merge params {:transforms [crop]}))))
 
 
@@ -45,26 +48,29 @@
   (params->url-segments {:w 150 :h 100 :c "scale"})
   (params->url-segments {:w 150 :h 100 :c "lfill"})
 
-  (crop->url {:bucket "sean-dean"
-              :x 450
-              :y 500
-              :w 2000
-              :h 1650
-              :filename "heron.jpg"})
+  (url {:mode :crop
+        :bucket "sean-dean"
+        :x 450
+        :y 500
+        :w 2000
+        :h 1650
+        :filename "heron.jpg"})
   ;; => "https://res.cloudinary.com/sean-dean/image/upload/x_450,y_500,w_2000,h_1650,c_crop/sc-test/heron.jpg"
 
-  (scale->url {:bucket "sean-dean"
-               :w 2000
-               :h 1650
-               :c "lfill"
-               :filename "heron.jpg"})
+  (url {:mode :scale
+        :bucket "sean-dean"
+        :w 2000
+        :h 1650
+        :c "lfill"
+        :filename "heron.jpg"})
   ;; => "https://res.cloudinary.com/sean-dean/image/upload/w_2000,h_1650,c_lfill/sc-test/heron.jpg"
 
-  (scale->url {:bucket "sean-dean"
-               :w 2000
-               :h 1650
-               :c "fit"
-               :filename "heron.jpg"})
+  (url {:mode :scale
+        :bucket "sean-dean"
+        :w 2000
+        :h 1650
+        :c "fit"
+        :filename "heron.jpg"})
   ;; => "https://res.cloudinary.com/sean-dean/image/upload/w_2000,h_1650,c_fit/sc-test/heron.jpg"
 
   ;;

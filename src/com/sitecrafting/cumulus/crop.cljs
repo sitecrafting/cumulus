@@ -88,18 +88,6 @@
   [{:keys [dimensions]}]
   (/ (:natural-width dimensions) (:rendered-width dimensions)))
 
-(defn crop->cloudinary-params
-  "Translate the raw ReactCrop params (as a map) to the params to passed to
-   cloudinary/crop->url."
-  [{:keys [crop-params] :as db}]
-  (let [params (keywordize-keys crop-params)
-        scaling-factor (scaling-factor db)
-        scale #(js/Math.round (* scaling-factor %))]
-    {:w (scale (:width params))
-     :h (scale (:height params))
-     :x (scale (:x params))
-     :y (scale (:y params))}))
-
 (defn update-current-size [{:keys [img-config] :as db} [_ new-size]]
   (let [saved-size (get-in img-config [:params_by_size (size->name new-size)])
         ;; Default to scale mode
@@ -123,6 +111,16 @@
 (defmethod params-to-save :crop [{:keys [crop-params]}]
   {:edit_mode "crop"
    :crop crop-params})
+
+(defn cloudinary-params [{:keys [current-size
+                                 edit-mode
+                                 img-config
+                                 crop-params]}]
+  (merge {:mode edit-mode
+          :target-size [(:width current-size)
+                        (:height current-size)]}
+         (select-keys img-config [:bucket :folder :filename])
+         crop-params))
 
 (defn set-crop-params [db [_ params]]
   (assoc db :crop-params params))
@@ -193,10 +191,5 @@
 
 ;; Compute the end result: the Cloudinary URL for our custom crop.
 
-(rf/reg-sub
- ::cloudinary-url
- (fn [{:keys [img-config current-size] :as db}]
-   (cloud/crop->url (merge img-config
-                           (crop->cloudinary-params db)
-                           {:target-size [(:width current-size)
-                                          (:height current-size)]}))))
+(rf/reg-sub ::cloudinary-params cloudinary-params)
+(rf/reg-sub ::cloudinary-url #(cloud/url (cloudinary-params %)))

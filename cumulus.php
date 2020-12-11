@@ -8,8 +8,6 @@
  * Author URI: https://www.sitecrafting.com
  *
  * TODO (MC3-186):
- * - set min height
- * - lfill scale
  * - set crop on load
  * - Flip horizontal/vertical transforms
  * - add click listeners to WP attachment arrow buttons

@@ -1,6 +1,6 @@
 (ns com.sitecrafting.cumulus.crop-test
   (:require
-   [clojure.test :refer [deftest is testing]]
+   [clojure.test :refer [deftest are is testing]]
    [com.sitecrafting.cumulus.crop :as crop]))
 
 
@@ -10,37 +10,6 @@
     (let [cofx {:dimensions {:rendered-width 500
                              :natural-width 1000}}]
       (is (= 2 (crop/scaling-factor cofx))))))
-
-(deftest test-crop->cloudinary-params
-
-  (testing "it returns the current full-size / rendered ratio"
-    (let [db {;; scaling factor of 2, meaning we want to double
-              ;; the crop dimensions to get the actual Cloudinary
-              ;; pre-resize transform dimensions.
-              :dimensions {:rendered-width 500
-                           :natural-width 1000}
-              :crop-params {:width 200
-                            :height 150
-                            :x 5
-                            :y 10}}]
-      (is (= {:w 400 :h 300 :x 10 :y 20}
-             (crop/crop->cloudinary-params db))))))
-
-#_(deftest test-params-to-save
-
-  (testing "it accounts for scaling factor"
-    (let [db {:edit-mode :crop
-              ;; scaling factor of 2, meaning we want to double
-              ;; the crop dimensions to get the actual Cloudinary
-              ;; pre-resize transform dimensions.
-              :dimensions {:rendered-width 500
-                           :natural-width 1000}
-              :crop-params {:width 200
-                            :height 150
-                            :x 5
-                            :y 10}}]
-      (is (= {:edit_mode "crop" :crop {:w 400 :h 300 :x 10 :y 20}}
-             (crop/params-to-save db))))))
 
 (deftest test-saved-params
 
@@ -173,3 +142,28 @@
                                                         {:edit_mode "crop"
                                                          :crop {:x 50 :y 50 :w 300 :h 300}}}}}
            (crop/save-current-size cofx)))))
+
+(deftest test-cloudinary-params
+
+  (testing "it accounts for config, current-size, crop-params, and edit-mode"
+    (is (= {:mode :crop
+            :bucket "my-bucket"
+            :folder "test"
+            :filename "test/cat.jpg"
+            :x 123
+            :y 456
+            :w 1000
+            :h 500
+            :target-size [150 150]}
+           (crop/cloudinary-params
+            {:edit-mode :crop
+             :img-config {:bucket "my-bucket"
+                          :folder "test"
+                          :filename "test/cat.jpg"
+                          :params_by_size "THIS SHOULD BE IGNORED"
+                          :any-other-stuff "should also be ignored"}
+             :crop-params {:x 123
+                           :y 456
+                           :w 1000
+                           :h 500}
+             :current-size {:width 150 :height 150}})))))
