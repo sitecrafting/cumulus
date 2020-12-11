@@ -184,6 +184,7 @@
    {:db (assoc db :dimensions dimensions)}))
 (rf/reg-sub ::aspect-ratio aspect-ratio)
 (rf/reg-sub ::dimensions :dimensions)
+(rf/reg-sub ::scaling-factor scaling-factor)
 (rf/reg-sub ::crop-params :crop-params)
 (rf/reg-sub ::unsaved-changes? unsaved-changes?)
 (rf/reg-event-db ::set-crop-params set-crop-params)

@@ -147,22 +147,28 @@
 (defn react-image-crop []
   (let [url @(rf/subscribe [::c/full-url])
         aspect-ratio @(rf/subscribe [::c/aspect-ratio])
+        current-size @(rf/subscribe [::c/current-size])
+        scaling-factor @(rf/subscribe [::c/scaling-factor])
+        natural->rendered #(js/Math.round (/ % scaling-factor))
+        rendered->natural #(js/Math.round (* % scaling-factor))
         {:keys [w h x y]} @(rf/subscribe [::c/crop-params])]
     [:> ReactCrop {:src url
                    :on-image-loaded #(do
                                        (reset! !img %)
                                        (rf/dispatch [::c/image-loaded]))
-                   :crop #js {:width (js/Math.round w)
-                              :height (js/Math.round h)
-                              :x (js/Math.round x)
-                              :y (js/Math.round y)
+                   :crop #js {:unit   "px"
+                              :width  (natural->rendered w)
+                              :height (natural->rendered h)
+                              :x      (natural->rendered x)
+                              :y      (natural->rendered y)
                               :aspect aspect-ratio}
+                   :minWidth (/ (:width current-size) scaling-factor)
                    :on-change #(rf/dispatch-sync
                                 [::c/set-crop-params
-                                 {:w (.-width %)
-                                  :h (.-height %)
-                                  :x (.-x %)
-                                  :y (.-y %)}])}]))
+                                 {:w (rendered->natural (.-width %))
+                                  :h (rendered->natural (.-height %))
+                                  :x (rendered->natural (.-x %))
+                                  :y (rendered->natural (.-y %))}])}]))
 
 (defn crop-size-nav-item
   "Given a size to display and the current size being edited,
@@ -200,7 +206,9 @@
   (let [info {:current-size @(rf/subscribe [::c/current-size])
               :new-params   @(rf/subscribe [::c/params-to-save])
               :saved-params  @(rf/subscribe [::c/saved-params])
-              :dimensions @(rf/subscribe [::c/dimensions])}]
+              :dimensions @(rf/subscribe [::c/dimensions])
+              :scaling-factor @(rf/subscribe [::c/scaling-factor])
+              :cloudinary-params @(rf/subscribe [::c/cloudinary-params])}]
     [:pre
      (js/JSON.stringify (clj->js info) nil 2)]))
 
