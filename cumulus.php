@@ -286,6 +286,10 @@ add_action('admin_enqueue_scripts', function() {
   );
 
   $registeredSizes = wp_get_registered_image_subsizes();
+  $supportedSizes  = array_intersect_key(
+    $registeredSizes,
+    array_flip(apply_filters('cumulus/sizes', array_keys($registeredSizes)))
+  );
 
   $sizes = array_map(function($key, $dimensions) {
     return [
@@ -293,7 +297,7 @@ add_action('admin_enqueue_scripts', function() {
       'width'     => $dimensions['width'],
       'height'    => $dimensions['height'],
     ];
-  }, array_keys($registeredSizes), array_values($registeredSizes));
+  }, array_keys($supportedSizes), array_values($supportedSizes));
 
   wp_localize_script('cumulus-crop-ui-js', 'CUMULUS_CONFIG', [
     'cloud'   => get_option('cumulus_cloud_name'),
