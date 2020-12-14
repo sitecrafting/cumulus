@@ -175,11 +175,15 @@
 
 ;; Dimensions
 
+;; Inject current natural and rendered dimensions into db;
+;; initialize crop params from saved data.
 (rf/reg-event-fx
  ::image-loaded
  [(rf/inject-cofx :dimensions)]
- (fn [{:keys [dimensions db]}]
-   {:db (assoc db :dimensions dimensions)}))
+ (fn [{:keys [dimensions] {size :current-size :as db} :db}]
+   {:db (assoc db :dimensions dimensions)
+    :dispatch [::update-current-size size]}))
+
 (rf/reg-sub ::aspect-ratio aspect-ratio)
 (rf/reg-sub ::dimensions :dimensions)
 (rf/reg-sub ::scaling-factor scaling-factor)
