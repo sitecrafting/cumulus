@@ -15,3 +15,4 @@
 .shadow-cljs
 *.tar.gz
 *.zip
+*.bak
