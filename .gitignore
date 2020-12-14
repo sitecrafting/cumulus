@@ -6,6 +6,8 @@
 /vendor
 /wp
 
+.env
+
 .calva
 .idea
 *.iml

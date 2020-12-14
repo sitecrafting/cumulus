@@ -37,6 +37,11 @@ tooling:
     description: Install and configure WordPress
     service: appserver
 
+  init-cumulus:
+    cmd: ./scripts/init-cumulus.sh
+    description: Configure Cumulus plugin
+    service: appserver
+
   shadow:
     cmd: shadow-cljs
     description: Run shadow-cljs commands
