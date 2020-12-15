@@ -71,15 +71,15 @@ jQuery(function($){
         $cumulusUi = $(_template('#cumulus-template-edit-media'))
         $modal.after($cumulusUi);
 
-        // Mount our CLJS/React app into the container.
-        _mountReactApp();
-
         $cumulusUi.find('.media-modal-close--cumulus').click(function(e) {
           $cumulusUi.hide();
           $modal.show();
           return false;
         });
       }
+
+      // Mount our CLJS/React app into the container.
+      _mountReactApp();
     });
   }
 

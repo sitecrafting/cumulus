@@ -24,9 +24,13 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+require_once __DIR__ . '/api.php';
+
 use Cloudinary\Api\Exception\ApiError;
 use Cloudinary\Api\Upload\UploadApi;
 use Cloudinary\Configuration\Configuration;
+
+use SiteCrafting\Cumulus;
 
 
 define('CUMULUS_JS_DIR', __DIR__ . '/dist/js/');
@@ -48,7 +52,7 @@ add_action('init', function() {
 
   Configuration::instance([
     'account'      => [
-      'cloud_name' => $settings['cloud_name'],
+      'cloud_name' => Cumulus\cloud_name(),
       'api_key'    => $settings['api_key'],
       'api_secret' => $settings['api_secret'],
     ],
@@ -64,7 +68,12 @@ add_action('init', function() {
  * If option does not exist in the database, look for a constant or an
  * environment variable, in that order.
  */
-add_filter('cumulus/settings', function($settings) {
+add_filter('cumulus/settings', function($settings = []) {
+  $settings = wp_parse_args(
+    $settings,
+    apply_filters('cumulus/settings/defaults', [])
+  );
+
   if (empty($settings['cloud_name']) && defined('CUMULUS_CLOUD_NAME')) {
     $settings['cloud_name'] = CUMULUS_CLOUD_NAME;
   }
@@ -85,6 +94,26 @@ add_filter('cumulus/settings', function($settings) {
   if (empty($settings['api_secret']) && !empty($_ENV['CUMULUS_API_SECRET'])) {
     $settings['api_secret'] = $_ENV['CUMULUS_API_SECRET'];
   }
+
+  if (empty($settings['folder']) && defined('CUMULUS_FOLDER')) {
+    $settings['folder'] = CUMULUS_API_SECRET;
+  }
+  if (empty($settings['folder']) && !empty($_ENV['CUMULUS_FOLDER'])) {
+    $settings['folder'] = $_ENV['CUMULUS_FOLDER'];
+  }
+
+  return $settings;
+});
+
+add_filter('cumulus/settings/defaults', function() {
+  // Load Cumulus options from the database once and cache them for the
+  // request lifetime.
+  static $settings;
+  $settings = $settings ?? [
+    'cloud_name' => get_option('cumulus_cloud_name'),
+    'api_key'    => get_option('cumulus_api_key'),
+    'api_secret' => get_option('cumulus_api_secret'),
+  ];
 
   return $settings;
 });
@@ -200,8 +229,6 @@ add_action('add_attachment', function(int $id) {
     return;
   }
 
-  $uploadFolder = get_option('cumulus_upload_folder') ?: null;
-
   static $uploader;
   $result = [];
 
@@ -209,7 +236,7 @@ add_action('add_attachment', function(int $id) {
     $uploader = $uploader ?? new UploadApi();
     $result = $uploader->upload($path, apply_filters('cumulus/upload_options', [
       'public_id' => basename($path),
-      'folder'    => $uploadFolder,
+      'folder'    => Cumulus\folder(),
     ]));
   } catch (ApiError $err) {
     do_action('cumulus/api_error', $err->getMessage(), [
@@ -226,7 +253,7 @@ add_action('add_attachment', function(int $id) {
   if ($result) {
     $registeredSizes = wp_get_registered_image_subsizes();
 
-    $cloud = get_option('cumulus_cloud_name');
+    $cloud = Cumulus\cloud_name();
 
     // TODO farm most of this out to a filter
     $urlsBySize = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes, $result, $cloud) {
@@ -287,7 +314,7 @@ add_filter('cumulus/upload_options', function(array $options) {
     $options['public_id'] = preg_replace($pattern, '', $options['public_id']);
   }
 
-  $folder = get_option('cumulus_folder');
+  $folder = Cumulus\folder();
   if ($folder) {
     $options['public_id'] = $folder . '/' . $options['public_id'];
   }
