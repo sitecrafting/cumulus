@@ -40,20 +40,53 @@ define('CUMULUS_VIEW_DIR', __DIR__ . '/views/');
  * TODO implement a settings panel where admins can do this on their own.
  */
 add_action('init', function() {
-  $cloud  = get_option('cumulus_cloud_name');
-  $key    = get_option('cumulus_api_key');
-  $secret = get_option('cumulus_api_secret');
+  $settings = apply_filters('cumulus/settings', [
+    'cloud_name' => get_option('cumulus_cloud_name'),
+    'api_key'    => get_option('cumulus_api_key'),
+    'api_secret' => get_option('cumulus_api_secret'),
+  ]);
 
   Configuration::instance([
     'account'      => [
-      'cloud_name' => $cloud,
-      'api_key'    => $key,
-      'api_secret' => $secret,
+      'cloud_name' => $settings['cloud_name'],
+      'api_key'    => $settings['api_key'],
+      'api_secret' => $settings['api_secret'],
     ],
     'url'          => [
       'secure'     => true,
     ],
   ]);
+});
+
+
+/**
+ * Configure fallbacks for global settings.
+ * If option does not exist in the database, look for a constant or an
+ * environment variable, in that order.
+ */
+add_filter('cumulus/settings', function($settings) {
+  if (empty($settings['cloud_name']) && defined('CUMULUS_CLOUD_NAME')) {
+    $settings['cloud_name'] = CUMULUS_CLOUD_NAME;
+  }
+  if (empty($settings['cloud_name']) && !empty($_ENV['CUMULUS_CLOUD_NAME'])) {
+    $settings['cloud_name'] = $_ENV['CUMULUS_CLOUD_NAME'];
+  }
+
+  if (empty($settings['api_key']) && defined('CUMULUS_API_KEY')) {
+    $settings['api_key'] = CUMULUS_API_KEY;
+  }
+  if (empty($settings['api_key']) && !empty($_ENV['CUMULUS_API_KEY'])) {
+    $settings['api_key'] = $_ENV['CUMULUS_API_KEY'];
+  }
+
+  if (empty($settings['api_secret']) && defined('CUMULUS_API_SECRET')) {
+    $settings['api_secret'] = CUMULUS_API_SECRET;
+  }
+  if (empty($settings['api_secret']) && !empty($_ENV['CUMULUS_API_SECRET'])) {
+    $settings['api_secret'] = $_ENV['CUMULUS_API_SECRET'];
+  }
+
+  return $settings;
 });
 
 
