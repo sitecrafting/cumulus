@@ -369,10 +369,10 @@ add_action('admin_enqueue_scripts', function() {
   }, array_keys($supportedSizes), array_values($supportedSizes));
 
   wp_localize_script('cumulus-crop-ui-js', 'CUMULUS_CONFIG', [
-    'cloud'   => get_option('cumulus_cloud_name'),
-    'sizes'   => $sizes,
     // TODO remove in favor of "cloud"
-    'bucket'  => get_option('cumulus_cloud_name'),
+    'bucket'   => Cumulus\cloud_name(),
+    'cloud'    => Cumulus\cloud_name(),
+    'sizes'    => $sizes,
     'WP_DEBUG' => WP_DEBUG,
   ]);
 
