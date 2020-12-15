@@ -49,29 +49,27 @@
   (params->url-segments {:w 150 :h 100 :c "lfill"})
 
   (url {:mode :crop
-        :bucket "sean-dean"
+        :bucket "ctamayo"
         :x 450
         :y 500
         :w 2000
         :h 1650
-        :filename "heron.jpg"})
-  ;; => "https://res.cloudinary.com/sean-dean/image/upload/x_450,y_500,w_2000,h_1650,c_crop/sc-test/heron.jpg"
+        :filename "cumulus-test/grasshopper.jpg"})
+  ;; => "https://res.cloudinary.com/ctamayo/image/upload/x_450,y_500,w_2000,h_1650,c_crop/c_scale/grasshopper.jpg"
 
   (url {:mode :scale
-        :bucket "sean-dean"
-        :w 2000
-        :h 1650
+        :bucket "ctamayo"
+        :target-size [2000 1650]
         :c "lfill"
-        :filename "heron.jpg"})
-  ;; => "https://res.cloudinary.com/sean-dean/image/upload/w_2000,h_1650,c_lfill/sc-test/heron.jpg"
+        :filename "cumulus-test/grasshopper.jpg"})
+  ;; => "https://res.cloudinary.com/ctamayo/image/upload/w_2000,h_1650,c_lfill/cumulus-test/grasshopper.jpg"
 
   (url {:mode :scale
-        :bucket "sean-dean"
-        :w 2000
-        :h 1650
+        :bucket "ctamayo"
+        :target-size [2000 1650]
         :c "fit"
-        :filename "heron.jpg"})
-  ;; => "https://res.cloudinary.com/sean-dean/image/upload/w_2000,h_1650,c_fit/sc-test/heron.jpg"
+        :filename "cumulus-test/grasshopper.jpg"})
+  ;; => "https://res.cloudinary.com/ctamayo/image/upload/w_2000,h_1650,c_fit/cumulus-test/grasshopper.jpg"
 
   ;;
   )

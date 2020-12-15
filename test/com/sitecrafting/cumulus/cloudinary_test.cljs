@@ -12,7 +12,6 @@
     (is (= "https://res.cloudinary.com/my-bucket/image/upload/x_123,y_456,w_1000,h_500,c_crop/w_150,h_150,c_scale/test/cat.jpg"
            (cloud/url {:mode :crop
                        :bucket "my-bucket"
-                       :folder "test"
                        :filename "test/cat.jpg"
                        :x 123
                        :y 456
@@ -24,7 +23,6 @@
     (is (= "https://res.cloudinary.com/my-bucket/image/upload/x_123,y_456,w_1000,h_500,c_crop/w_150,c_scale/test/cat.jpg"
            (cloud/url {:mode :crop
                        :bucket "my-bucket"
-                       :folder "test"
                        :filename "test/cat.jpg"
                        :x 123
                        :y 456
@@ -34,7 +32,6 @@
     (is (= "https://res.cloudinary.com/my-bucket/image/upload/x_123,y_456,w_1000,h_500,c_crop/h_150,c_scale/test/cat.jpg"
            (cloud/url {:mode :crop
                        :bucket "my-bucket"
-                       :folder "test"
                        :filename "test/cat.jpg"
                        :x 123
                        :y 456
@@ -48,7 +45,6 @@
     (is (= "https://res.cloudinary.com/my-bucket/image/upload/w_1000,h_500,c_lfill/test/cat.jpg"
            (cloud/url {:mode :scale
                        :bucket "my-bucket"
-                       :folder "test"
                        :filename "test/cat.jpg"
                        :target-size [1000 500]
                        :w 0
@@ -59,7 +55,6 @@
     (is (= "https://res.cloudinary.com/my-bucket/image/upload/w_1000,h_500,c_fit/test/cat.jpg"
            (cloud/url {:mode :scale
                        :bucket "my-bucket"
-                       :folder "test"
                        :filename "test/cat.jpg"
                        :target-size [1000 500]
                        :w 0
