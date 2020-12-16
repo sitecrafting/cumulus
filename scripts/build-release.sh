@@ -115,7 +115,7 @@ function create_github_release() {
     read -p 'Create a GitHub release? (y/N) ' create
     if [[ "$create" = "y" ]] ; then
       echo 'pushing latest changes and tags...'
-      git push origin master
+      git push origin main
       git push --tags
       hub release create --prerelease \
         --attach="$2" \
