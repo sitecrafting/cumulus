@@ -77,7 +77,7 @@
   [{:keys [size_name] :as size} current-size]
   (let [unsaved-changes? @(rf/subscribe [::c/unsaved-changes?])
         confirm!? #(or (not unsaved-changes?)
-                       (js/confirm "Do you want to save your changes?"))
+                       (js/confirm "Do you want to save your changes? If you don't, reset before switching."))
         current? (= (:size_name current-size) size_name)]
     [:li {:class (when current? "cumulus-current-size")}
      [:a {:name size_name
