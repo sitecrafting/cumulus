@@ -81,6 +81,7 @@ function main() {
   tar -cvzf "$tar_name" \
     cumulus/dist \
     cumulus/cumulus.php \
+    cumulus/api.php \
     cumulus/vendor \
     cumulus/views \
     cumulus/LICENSE.txt \
@@ -90,6 +91,7 @@ function main() {
   zip -r "${zip_name}" \
     cumulus/dist \
     cumulus/cumulus.php \
+    cumulus/api.php \
     cumulus/vendor \
     cumulus/views \
     cumulus/LICENSE.txt \

@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Cumulus: Cloudinary Image Crops
  * Description: Serve your custom image crops from Cloudinary Image CDN
- * Version: 0.1.0
+ * Version: 0.0.2
  * Author: SiteCrafting, Inc.
  * Author URI: https://www.sitecrafting.com
  *
