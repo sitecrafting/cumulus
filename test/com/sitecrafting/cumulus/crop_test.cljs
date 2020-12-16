@@ -52,7 +52,15 @@
         (is (nil? (:crop-params updated))))
       (let [updated (crop/update-current-size db [:_ {:size_name "thumbnail"}])]
         (is (= :crop (:edit-mode updated)))
-        (is (= {:x 0 :y 0 :w 150 :h 150} (:crop-params updated)))))))
+        (is (= {:x 0 :y 0 :w 150 :h 150} (:crop-params updated))))
+
+      ;; Only update edit-mode if we're changing the actual size being edited.
+      ;; This is because switching from one crop mode to the other also reloads
+      ;; the image, which dispatches ::update-current-size
+      (let [updated (crop/update-current-size
+                     (assoc db :edit-mode :crop)
+                     [:_ {:size_name "large"}])]
+        (is (= :crop (:edit-mode updated)))))))
 
 (deftest test-db->update-sizes-config
 

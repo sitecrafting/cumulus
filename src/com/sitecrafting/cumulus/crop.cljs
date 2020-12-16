@@ -88,14 +88,18 @@
   [{:keys [dimensions]}]
   (/ (:natural-width dimensions) (:rendered-width dimensions)))
 
-(defn update-current-size [{:keys [img-config] :as db} [_ new-size]]
+(defn update-current-size [{:keys [img-config current-size edit-mode] :as db}
+                           [_ new-size]]
   (let [saved-size (get-in img-config [:params_by_size (size->name new-size)])
         ;; Default to scale mode
         saved-edit-mode (keyword (:edit_mode saved-size "scale"))
-        saved-crop (:crop saved-size)]
+        saved-crop (:crop saved-size)
+        edit-mode (if (= (size->name current-size) (size->name new-size))
+                    edit-mode
+                    saved-edit-mode)]
     (assoc db
            :current-size new-size
-           :edit-mode saved-edit-mode
+           :edit-mode edit-mode
            :crop-params saved-crop)))
 
 (defn saved-params [{:keys [img-config current-size]}]
