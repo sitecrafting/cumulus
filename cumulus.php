@@ -8,13 +8,10 @@
  * Author URI: https://www.sitecrafting.com
  *
  * TODO (MC3-186):
- * - set crop on load
+ * - Compute default crop on load?
  * - Flip horizontal/vertical transforms
  * - add click listeners to WP attachment arrow buttons
- * - hook for MIME type
- * - hook for crop sizes to manage
- * - phpunit tests
- * - WHERE DO THE EXTRA Y PIXELS COME FROM?? (later)
+ * - phpunit tests (future)
  * - SVG icons (nice-to-have)
  * - Push all AJAX requests down into CLJS (nice-to-have)
  * - nicer transitions between crop sizes (nice-to-have)
@@ -26,8 +23,6 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 require_once __DIR__ . '/api.php';
 
-use Cloudinary\Api\Exception\ApiError;
-use Cloudinary\Api\Upload\UploadApi;
 use Cloudinary\Configuration\Configuration;
 
 use SiteCrafting\Cumulus;
@@ -215,93 +210,11 @@ add_action('rest_api_init', function() {
  * Upload to Cloudinary backend when a new Attachment is added.
  */
 add_action('add_attachment', function(int $id) {
-  $path = get_attached_file($id);
-  if (!$path) {
+  if (!Cumulus\should_upload($id)) {
     return;
   }
 
-  $supportedTypes = apply_filters(
-    'cumulus/mime_types_to_upload',
-    array_values(get_allowed_mime_types())
-  );
-  if (!in_array(mime_content_type($path), $supportedTypes)) {
-    // Not a MIME type the user wants to support
-    return;
-  }
-
-  static $uploader;
-  $result = [];
-
-  try {
-    $uploader = $uploader ?? new UploadApi();
-    $result = $uploader->upload($path, apply_filters('cumulus/upload_options', [
-      'public_id' => basename($path),
-      'folder'    => Cumulus\folder(),
-    ]));
-  } catch (ApiError $err) {
-    do_action('cumulus/api_error', $err->getMessage(), [
-      'exception' => $err,
-      'context'   => 'upload',
-    ]);
-  } catch (InvalidArgumentException $err) {
-    do_action('cumulus/api_error', $err->getMessage(), [
-      'exception' => $err,
-      'context'   => 'upload',
-    ]);
-  }
-
-  if ($result) {
-    $registeredSizes = wp_get_registered_image_subsizes();
-
-    $cloud = Cumulus\cloud_name();
-
-    // TODO farm most of this out to a filter
-    $urlsBySize = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes, $result, $cloud) {
-      // Avoid crops of zero width or height.
-      $width  = $registeredSizes[$size]['width'];
-      $height = $registeredSizes[$size]['height'];
-      $dimensionParams = implode(',', array_filter([
-        ($width ? "w_{$width}" : ''),
-        ($height ? "h_{$height}" : ''),
-        'c_lfill',
-      ]));
-
-      // Compute the scale (lfill) URL for this size.
-      $url = sprintf(
-        'https://res.cloudinary.com/%s/image/upload/%s/%s.%s',
-        $cloud,
-        $dimensionParams,
-        $result['public_id'], // filename
-        $result['format'] // extension
-      );
-
-      $url = apply_filters("cumulus/crop_url/$size", $url, [
-        'size'       => $size,
-        'dimensions' => $registeredSizes[$size],
-        'cloud_name' => $cloud,
-        'response'   => $result,
-      ]);
-
-      return array_merge($sizes, [
-        $size => $url,
-      ]);
-    }, []);
-
-    $paramsBySize = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes) {
-      return array_merge($sizes, [
-        $size => [
-          'edit_mode' => 'scale',
-        ],
-      ]);
-    }, []);
-
-    update_post_meta($id, 'cumulus_image', [
-      'cloudinary_id'   => $result['public_id'],
-      'urls_by_size'    => $urlsBySize,
-      'params_by_size'  => $paramsBySize,
-      'cloudinary_data' => $result,
-    ]);
-  }
+  Cumulus\upload_attachment($id);
 }, 10);
 
 /**
