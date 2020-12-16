@@ -179,10 +179,12 @@
 
          [:footer
           [:span.cumulus-control
-           [:button {:disabled (not unsaved-changes?)
+           [:button {:class "button button-primary"
+                     :disabled (not unsaved-changes?)
                      :on-click save-crop!}
             "Save"]
-           [:button {:disabled (not unsaved-changes?)
+           [:button {:class "button"
+                     :disabled (not unsaved-changes?)
                      :on-click reset-crop!}
             "Reset"]]
           (when debug?

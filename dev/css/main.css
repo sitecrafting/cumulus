@@ -27,6 +27,10 @@
   margin-top: 0;
 }
 
+.wp-core-ui .cumulus-control > * + * {
+  margin-left: var(--cumulus-gutter);
+}
+
 .cumulus-scaled-img-container {
   display: flex;
   justify-content: center;
