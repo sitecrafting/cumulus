@@ -56,6 +56,8 @@ jQuery(function($){
           },
         });
       }
+    } else {
+      console.log('TODO figure out how to deal with this situation...');
     }
 
     $customizeImageCropsBtn.click(function() {
