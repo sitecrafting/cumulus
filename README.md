@@ -14,9 +14,84 @@ Here's an illustration of how it works internally:
 
 ![The Cumulus comic shows a WP Admin user specifying that for their cat.jpb image at custom_size, they want a specific crop. A friendly robot representing the Cumulus plugin says YES HUMAN. Cumulus the Robot in turn asks WordPress to "please store cloudinary_url for attachment 123 at custom_size," and WordPress responds, "You got it!" Later, a user requests a page from your website. WordPress thinks to itself, "Better run the wp_get_attachment_image_src filter" and says "here ya go" to the end user, serving them HTML containing the cloudinary_url. Finally, the user's browser requests cloudinary_url from Cloudinary, and hence flow the bits comprising cat.jpg!](https://raw.githubusercontent.com/sitecrafting/cumulus/main/cumulus-comic.png)
 
-## Development
+## Installation
 
-**TODO** revise this documentation.
+Go to the GitHub [releases page](https://github.com/sitecrafting/cumulus/releases/) and download the .zip archive of the latest release. Make sure you download the release archive, **not** the source code archive. For example, if the latest release is called `v0.x.x`, click the download link that says **cumulus-v0.x.x.zip**. (You can also use the `tar.gz` archive if you want - they are the same code.)
+
+Once downloaded and unzipped, place the extracted directory in `wp-content/plugins`. Activate the plugin from the WP Admin as you normally would.
+
+### Via Composer
+
+
+
+## Usage
+
+### Managing Image Resizes
+
+Once you activate the plugin, in the Attachment Details for each item in the Media Library, you will see a **Customize Image Crops** button:
+
+![Customize Image Crops from Attachment Details screen](https://raw.githubusercontent.com/sitecrafting/cumulus/main/img/attachment-details.png)
+
+Clicking on this button brings you to the **Customize Image Crops** screen, which shows you the default auto-scaled image for each crop size. Here it is displaying the auto-scaled thumbnail version of our image:
+
+![Scaling an image to thumbnail inside the tool](https://raw.githubusercontent.com/sitecrafting/cumulus/main/img/default-scale-thumbnail.png)
+
+Leaving it at this setting will cause this auto-scaled image to be served on the frontend for the **Thumbnail** crop size:
+
+![Thumbnail image crop](https://raw.githubusercontent.com/sitecrafting/cumulus/main/img/heron-scaled-thumbnail.jpg)
+
+Note that WordPress does not need to regenerate the image to do this. Cloudinary generates the correctly scaled image based on the URL alone!
+
+Switching to **Crop** mode enables the manual cropping tool:
+
+![Customizing Image Crops manually](https://raw.githubusercontent.com/sitecrafting/cumulus/main/img/customize-image-crops.png)
+
+Saving this setting will similarly tell WordPress to apply this exact crop to the original image, and then scale down the derived image to the appropriate dimensions for the image size (in this case **Thumbnail**):
+
+![Manually cropping for the Thumbnail size](https://raw.githubusercontent.com/sitecrafting/cumulus/main/img/heron-cropped-thumbnail.jpg)
+
+Each setting for each image size is maintained independently, so for this one image, if you want to set a manual crop for one image size but let the other sizes auto-scale, Cumulus lets you do that.
+
+### Managing Cloudinary Settings
+
+Currently there is no admin settings UI. This will be implemented in a future version.
+
+For now, there are a few ways to manage your Cumulus settings:
+
+* Use standard WP options set through [WP-CLI `wp option` commands](https://developer.wordpress.org/cli/commands/option/)
+
+  ```
+  wp option set cumulus_cloud_name my-cloud
+  wp option set cumulus_api_key my-api-key
+  wp option set cumulus_api_secret my-secret
+  wp option set cumulus_folder my-folder
+  ```
+
+* PHP constants:
+
+  ```php
+  define('CUMULUS_CLOUD_NAME', 'my-cloud');
+  define('CUMULUS_API_KEY',    'my-api-key');
+  define('CUMULUS_API_SECRET', 'my-api-secret');
+  define('CUMULUS_FOLDER',     'my-folder');
+  ```
+
+* PHP environment variables:
+
+  ```php
+  $_ENV['CUMULUS_CLOUD_NAME'] = 'my-cloud';
+  $_ENV['CUMULUS_API_KEY']    = 'my-api-key';
+  $_ENV['CUMULUS_API_SECRET'] = 'my-api-secret';
+  $_ENV['CUMULUS_FOLDER']     = 'my-folder';
+  ```
+
+Settings are resolved in that order so for example if the `CUMULUS_API_KEY` constant is defined, Cumulus does not consider the environment variable even if it is also set. By that same token, if the `cumulus_cloud_name` option is found in the database, neither the constant nor the environment variable are considered.
+
+## Actions and Filters
+
+**TODO**
+
+## Development
 
 This repo was based on the [Shadow CLJS Browser Quickstart](https://github.com/shadow-cljs/quickstart-browser.git) template.
 
@@ -24,12 +99,18 @@ This repo was based on the [Shadow CLJS Browser Quickstart](https://github.com/s
 
 These are the baseline requirements for the dev environment:
 
+- [Lando](https://docs.lando.dev) for running the WordPress test environment
 - [node.js (v6.0.0+)](https://nodejs.org/en/download/)
 - [Yarn](https://yarnpkg.com/)
 - [Java JDK (8+)](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [Open JDK (8+)](http://jdk.java.net/10/)
+- Recommended for Clojure(Script) beginners: [VS Code](https://code.visualstudio.com/) with the [Calva](https://calva.io/) extension
+
+It's also worth it to familiarize yourself with [shadow-cljs](https://shadow-cljs.org/), the ClojureScript compiler.
+
+### Setup
 
 ```bash
-git clone https://github.com/sitecrafting/cumulus.git quickstart
+git clone git@github.com/sitecrafting/cumulus.git quickstart
 cd quickstart
 yarn
 yarn dev
@@ -39,97 +120,77 @@ This runs the `shadow-cljs` server process which all following commands will tal
 
 The first startup takes a bit of time since it has to download all the dependencies and do some prep work. Once this is running we can get started.
 
+#### Watching files
+
 ```bash
 yarn shadow watch main
 ```
 
-This will begin the compilation of the configured `:app` build and re-compile whenever you change a file.
+The `main` here refers to the name of the build; see the `:builds` map inside `shadow-cljs.edn` for exactly how this is configured. The above command will begin the compilation of the `:main` build and re-compile whenever you change a file.
 
-When you see a "Build completed." message your build is ready to be used.
+When you see a "Build completed" message your build is ready to be used.
 
 ```txt
 [:app] Build completed. (23 files, 4 compiled, 0 warnings, 7.41s)
 ```
 
-You can now then open [http://localhost:8020](http://localhost:8020).
+You can now open [http://localhost:8008](http://localhost:8008).
 
-The app is only a very basic skeleton with the most useful development tools configured.
+#### Watching files: an alternative
 
-`shadow-cljs` is configured by the `shadow-cljs.edn` config. It looks like this:
+Instead of `yarn shadow watch main`, you can also trigger watching files from the browser by going to http://localhost:9630/builds and clicking **start watch**.
 
-```clojure
-{:source-paths
- ["src"] ;; .cljs files go here
+The same goes for the **test** build (see below).
 
- :dependencies
- [] ;; covered later
+### Tests
 
- :builds
- {:app {:target :browser
-        :output-dir "public/js"
-        :asset-path "/js"
+ClojureScript unit tests run in the browser. To watch src and test files, run:
 
-        :modules
-        {:main ;; <- becomes public/js/main.js
-         {:entries [starter.browser]}}
-
-        ;; start a development http server on http://localhost:8020
-        :devtools
-        {:http-root "public"
-         :http-port 8020}
-        }}}
+```
+yarn shadow watch test
 ```
 
-It defines the `:app` build with the `:target` set to `:browser`. All output will be written to `public/js` which is a path relative to the project root (ie. the directory the `shadow-cljs.edn` config is in).
-
-`:modules` defines the how the output should be bundled together. For now we just want one file. The `:main` module will be written to `public/js/main.js`, it will include the code from the `:entries` and all their dependencies.
-
-`:devtools` configures some useful development things. The `http://localhost:8020` server we used earlier is controlled by the `:http-port` and serves the `:http-root` directory.
-
-The last part is the actual `index.html` that is loaded when you open `http://localhost:8020`. It loads the generated `/js/main.js` and then calls `start.browser.init` which we defined in the `src/start/browser.cljs`.
-
-```html
-<!doctype html>
-<html>
-<head><title>Browser Starter</title></head>
-<body>
-<h1>shadow-cljs - Browser</h1>
-<div id="app"></div>
-
-<script src="/js/main.js"></script>
-<script>starter.browser.init();</script>
-</body>
-</html>
-```
-
-## Live reload
-
-To see the live reload in action you can edit the `src/start/browser.cljs`. Some output will be printed in the browser console.
+Then go to [http://localhost:8007/](http://localhost:8007/). It will run all tests whenever the ClojureScript compiler detects a change. You can even set it to alert you via desktop notifications.
 
 ## REPL
 
-During development it the REPL is very useful.
+The Read-Eval Print Loop, or REPL, is an extremely useful dev tool and is the basis for "REPL-driven" development.
 
-From the command line use `npx shadow-cljs cljs-repl app`.
-
-```
-shadow-cljs - config .../shadow-cljs.edn version: 2.2.16
-shadow-cljs - connected to server
-[2:1]~cljs.user=>
-```
-
-This can now be used to eval code in the browser (assuming you still have it open). Try `(js/alert "Hi.")` and take it from there. You might want to use `rlwrap npx shadow-cljs cljs-repl app` if you intend to type a lot here.
-
-You can exit the REPL by either `CTRL+C` or typing `:repl/quit`.
+If you have run `yarn dev` and are watching the `main` build, you can start a REPL straight from your editor with most IDEs. This guide will cover how to do so with VS Code
 
 ## Release
 
-The `watch` process we started is all about development. It injects the code required for the REPL and the all other devtools but we do not want any of that when putting the code into "production" (ie. making it available publicly).
+Start by updating the release number in the `cumulus.php` header comment:
 
-The `release` action will remove all development code and run the code through the Closure Compiler to produce a minified `main.js` file. Since that will overwrite the file created by the `watch` we first need to stop that.
+```php
+/**
+ * Plugin Name: Cumulus: Cloudinary Image Crops
+ * Description: Serve your custom image crops from Cloudinary Image CDN
+ * Version: 0.1.0 <-- UPDATE THIS
+ * ...
+ */
+```
 
-Use `CTRL+C` to stop the `watch` process and instead run `npx shadow-cljs release app`.
+WP-CLI wp option commandsMake sure you commit this change before creating the actual release. Otherwise your release download will not include this update.
 
-When done you can open `http://localhost:8020` and see the `release` build in action. At this point you would usually copy the `public` directory to the "production" web server.
+The `scripts/build-release.sh` tool creates a build archive that can be uploaded to GitHub as part of a release.
 
-Note that in the default config we overwrote the `public/js/main.js` created by the `watch`. You can also configure a different path to use for release builds but writing the output to the same file means we do not have to change the `index.html` and test everything as is.
+To create a release called `vX.Y.Z`, run:
+
+```sh
+scripts/build-release.sh vX.Y.Z
+```
+
+This will create a .tar.gz and a .zip archive which you can upload to a new release on GitHub.
+
+If you have [`hub`](https://hub.github.com/) installed, it will also prompt you to optionally create a GitHub  release for you directly!
+
+## TODO
+
+* Support bulk upload of existing Media Library
+* Admin Settings UI
+* Deletion settings
+* PHPUnit tests
+* Document hooks
+* Internationalization
+* Submit to WordPress plugin repository
