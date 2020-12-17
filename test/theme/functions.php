@@ -27,3 +27,22 @@ add_filter('cumulus/sizes', function() {
     'custom_large'
   ];
 });
+
+
+/**
+ * Log stuff to wp-content/debug.log
+ * Assumes you have WP debugging configured like so in wp-config.php:
+ * ```php
+ *  define('WP_DEBUG',              true);
+ *  define('WP_DEBUG_DISPLAY',      false);
+ *  define('WP_DEBUG_LOG',          true);
+ * ```
+ * @param  mixed $message the message or other value to log. If not a string, gets var_export'ed
+ */
+function debug($message, string $prefix = '') {
+  if(!is_string($message)) {
+    $message = var_export($message,true);
+  }
+
+  error_log($message);
+}
