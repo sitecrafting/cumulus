@@ -189,6 +189,10 @@ add_action('rest_api_init', function() {
   register_rest_route('cumulus/v1', '/attachment/(?P<id>\d++)', [
     'methods'  => 'POST',
     'callback' => function($req) {
+      if (!is_user_logged_in()) {
+        return;
+      }
+
       $id     = $req->get_param('id');
       $meta   = get_post_meta($id, 'cumulus_image', true) ?: [];
       $params = $req->get_json_params();
