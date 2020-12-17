@@ -120,6 +120,24 @@ This runs the `shadow-cljs` server process which all following commands will tal
 
 The first startup takes a bit of time since it has to download all the dependencies and do some prep work. Once this is running we can get started.
 
+### Starting WordPress
+
+The WordPress test site runs inside Lando. To start it, just run:
+
+```sh
+lando start
+```
+
+This will install WP Core and activate the Cumulus plugin within the install. It will print out your local dev site URLs when it's done.
+
+To build JavaScript assets for the Lando WP install, run:
+
+```
+shadow-cljs release main
+```
+
+This will compile the JS code to `dist/js/main.js`.
+
 #### Watching files
 
 ```bash
