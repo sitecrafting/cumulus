@@ -3,11 +3,26 @@
     "description": "WordPress plugin for managing image crop sizes with Cloudinary Image CDN",
     "type": "wordpress-plugin",
     "minimum-stability": "dev",
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://wpackagist.org",
+            "only": ["wpackagist-plugin/*", "wpackagist-theme/*"]
+        }
+    ],
     "require": {
-        "cloudinary/cloudinary_php": "2.0.0-beta6"
+        "cloudinary/cloudinary_php": "2.0.0-beta6",
+        "wpackagist-plugin/advanced-custom-fields": "^5.9"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.2"
+        "phpunit/phpunit": "^9.2",
+        "symfony/dotenv": "^5.2",
+        "timber/timber": "^2.0"
+    },
+    "extra": {
+        "installer-paths": {
+            "wp/wp-content/plugins/{$name}/": ["type:wordpress-plugin"]
+        }
     },
     "license": "MIT",
     "authors": [

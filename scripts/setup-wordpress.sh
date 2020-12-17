@@ -57,7 +57,14 @@ EOF
   # configure plugins and theme
   uninstall_plugin akismet
   uninstall_plugin hello
-  wp --quiet plugin activate cumulus
+  wp plugin activate cumulus advanced-custom-fields
+
+  # symlink the test theme
+  if [[ ! -d wp/wp-content/themes/cumulus ]] ; then
+    ln -s ../../../test/theme wp/wp-content/themes/cumulus
+  fi
+
+  wp theme activate cumulus
 
   wp option set permalink_structure '/%postname%/'
   wp rewrite flush

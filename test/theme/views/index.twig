@@ -1,0 +1,36 @@
+<title>Cumulus Test Site</title>
+<meta charset="utf-8">
+<link rel="stylesheet" href="/wp-content/themes/cumulus/style.css">
+
+<h1>Cumulus Test Site</h1>
+
+<main class="stack">
+{% for field in ['test_image_1', 'test_image_2', 'test_image_3'] %}
+  <div>
+    {% set img = get_post(post.meta(field)) %}
+    <h2>{{ img.title }}</h2>
+
+    <h3>Full size</h2>
+    <img src="{{ img.src }}">
+
+    <h3>Large</h3>
+    <img src="{{ img.src('large') }}">
+
+    <h3>Custom Large</h3>
+    <img src="{{ img.src('custom_large') }}">
+
+    <h3>Medium</h3>
+    <img src="{{ img.src('medium') }}">
+
+    <h3>Custom Medium</h3>
+    <img src="{{ img.src('custom_medium') }}">
+
+    <h3>Custom Small</h3>
+    <img src="{{ img.src('custom_small') }}">
+
+    <h3>Thumbnail</h3>
+    <img src="{{ img.src('thumbnail') }}">
+  </div>
+{% endfor %}
+
+</main>

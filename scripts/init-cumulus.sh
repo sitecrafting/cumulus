@@ -28,9 +28,9 @@ function fail() {
 
 
 function main() {
-  wp option set cumulus_cloud_name "$CLOUD_NAME"
-  wp option set cumulus_api_key "$API_KEY"
-  wp option set cumulus_api_secret "$API_SECRET"
+  wp option set cumulus_cloud_name "$CUMULUS_CLOUD_NAME"
+  wp option set cumulus_api_key "$CUMULUS_API_KEY"
+  wp option set cumulus_api_secret "$CUMULUS_API_SECRET"
 }
 
 
@@ -52,17 +52,17 @@ case $key in
     exit
     ;;
   -c|--cloud)
-    CLOUD_NAME="$2"
+    CUMULUS_CLOUD_NAME="$2"
     shift # past flag
     shift # past value
     ;;
   -k|--key)
-    API_KEY="$2"
+    CUMULUS_API_KEY="$2"
     shift # past flag
     shift # past value
     ;;
   -s|--secret)
-    API_SECRET="$2"
+    CUMULUS_API_SECRET="$2"
     shift # past flag
     shift # past value
     ;;
