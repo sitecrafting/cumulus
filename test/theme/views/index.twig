@@ -11,25 +11,32 @@
     <h2>{{ img.title }}</h2>
 
     <h3>Full size</h2>
-    <img src="{{ img.src }}">
+    <img src="{{ img.src }}" alt="{{ img.alt }}">
+    <pre>{{ img.src }}</pre>
 
     <h3>Large</h3>
-    <img src="{{ img.src('large') }}">
+    <img src="{{ img.src('large') }}" alt="{{ img.alt }}">
+    <pre>{{ img.src('large') }}</pre>
 
     <h3>Custom Large</h3>
-    <img src="{{ img.src('custom_large') }}">
+    <img src="{{ img.src('custom_large') }}" alt="{{ img.alt }}">
+    <pre>{{ img.src('custom_large') }}</pre>
 
     <h3>Medium</h3>
-    <img src="{{ img.src('medium') }}">
+    <img src="{{ img.src('medium') }}" alt="{{ img.alt }}">
+    <pre>{{ img.src('medium') }}</pre>
 
     <h3>Custom Medium</h3>
-    <img src="{{ img.src('custom_medium') }}">
+    <img src="{{ img.src('custom_medium') }}" alt="{{ img.alt }}">
+    <pre>{{ img.src('custom_medium') }}</pre>
 
     <h3>Custom Small</h3>
-    <img src="{{ img.src('custom_small') }}">
+    <img src="{{ img.src('custom_small') }}" alt="{{ img.alt }}">
+    <pre>{{ img.src('custom_small') }}</pre>
 
     <h3>Thumbnail</h3>
-    <img src="{{ img.src('thumbnail') }}">
+    <img src="{{ img.src('thumbnail') }}" alt="{{ img.alt }}">
+    <pre>{{ img.src('thumbnail') }}</pre>
   </div>
 {% endfor %}
 
