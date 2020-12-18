@@ -118,15 +118,20 @@
         crop-params @(rf/subscribe [::c/crop-params])
         edit-mode @(rf/subscribe [::c/edit-mode])
         cropping? (= :crop edit-mode)
-        {:keys [width height] :as current-size} @(rf/subscribe [::c/current-size])
-        {:keys [sizes full_url full_width full_height]} @(rf/subscribe [::c/img-config])
-        {saved-mode :edit_mode} @(rf/subscribe [::c/saved-params])
+        {:keys [width height] :as current-size}
+        @(rf/subscribe [::c/current-size])
+        {:keys [sizes full_url full_width full_height]}
+        @(rf/subscribe [::c/img-config])
+        {saved-mode :edit_mode :as saved-params}
+        @(rf/subscribe [::c/saved-params])
         unsaved-changes? @(rf/subscribe [::c/unsaved-changes?])
         save-crop! #(when unsaved-changes?
                       (rf/dispatch [::c/save-current-size]))
         reset-crop! #(when unsaved-changes?
-                       (rf/dispatch [::c/update-edit-mode (keyword saved-mode)])
-                       (rf/dispatch [::c/update-current-size current-size]))]
+                       (rf/dispatch [::c/update-edit-mode
+                                     (keyword saved-mode)])
+                       (rf/dispatch [::c/update-current-size
+                                     current-size]))]
     [:div.cumulus-crop-ui
      [:nav
       [:ul.cumulus-crop-sizes
@@ -159,7 +164,8 @@
            "View resized image"]]
 
          [:section.stack-exception
-          [:p.description "Image can only scale down from the original dimensions."]
+          [:p.description
+           "Image can only scale down from the original dimensions."]
           [:div
            [:span.cumulus-dimension {:data-label "w"} width]
            ;; TODO svg lock
@@ -190,7 +196,9 @@
                      :on-click save-crop!}
             "Save"]
            [:button {:class "button"
-                     :disabled (not unsaved-changes?)
+                     :disabled (or
+                                (nil? saved-params)
+                                (not unsaved-changes?))
                      :on-click reset-crop!}
             "Reset"]]
           (when debug?
