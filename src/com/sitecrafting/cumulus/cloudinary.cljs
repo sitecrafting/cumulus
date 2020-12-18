@@ -27,7 +27,7 @@
                        filename)]
     (str "https://res.cloudinary.com/" (join "/" (filter seq segments)))))
 
-(defmulti url :mode)
+(defmulti url #(or (:mode %) :scale))
 
 (defmethod url :crop [params]
   (let [manual-crop (select-keys params [:x :y :w :h])

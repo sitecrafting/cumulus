@@ -28,8 +28,9 @@
 
 (rf/reg-cofx :dimensions dimensions-cofx)
 
-;; TODO readjust crop params
-(.addEventListener js/window "resize" #(rf/dispatch [::c/image-loaded]))
+(.addEventListener js/window "resize" (fn [_]
+                                        (when @!img
+                                          (rf/dispatch [::c/image-loaded]))))
 
 
 (defn size-name->label [s]

@@ -108,7 +108,7 @@
 
 ;; Compute the params to persist to the database given the current
 ;; edit mode.
-(defmulti params-to-save #(:edit-mode % :scale))
+(defmulti params-to-save #(or (:edit-mode %) :scale))
 
 (defmethod params-to-save :scale [_]
   {:edit_mode "scale"})
