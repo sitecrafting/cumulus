@@ -46,3 +46,7 @@ function debug($message, string $prefix = '') {
 
   error_log($message);
 }
+
+function select_keys(array $assoc, array $keys) : array {
+  return array_intersect_key($assoc, array_flip($keys));
+}

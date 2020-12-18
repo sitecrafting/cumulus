@@ -65,41 +65,96 @@
 (deftest test-db->update-sizes-config
 
   (testing "it derives request data from :current-size, :edit-mode, and :crop-params"
-    (let [db {:img-config {:attachment_id 25
-                           :params_by_size {:thumbnail {:edit_mode "crop"
-                                                        :crop {:x 0 :y 0 :w 300 :h 150}}
-                                            :medium {:edit_mode "scale"}
-                                            :large {:edit_mode "scale"}}}
-              :edit-mode :crop
-              :crop-params {:x 50 :y 200 :w 2000 :h 2000}
+    (let [urls-by-size {:thumbnail
+                        (str "https://res.cloudinary.com"
+                             "/my-bucket/image/upload"
+                             "/w_400,h_400,c_crop"
+                             "/w_150,h_150,c_scale"
+                             "/test/cat.jpg")
+                        :medium
+                        (str "https://res.cloudinary.com"
+                             "/my-bucket/image/upload"
+                             "/w_300,h_300,c_lfill"
+                             "/test/cat.jpg")
+                        :large
+                        (str "https://res.cloudinary.com"
+                             "/my-bucket/image/upload"
+                             "/w_1024,h_1024,c_lfill"
+                             "/test/cat.jpg")}
+          sizes [{:size_name "thumbnail"
+                  :width 150
+                  :height 150}
+                 {:size_name "medium"
+                  :width 300
+                  :height 300}
+                 {:size_name "large"
+                  :width 1024
+                  :height 1024}]
+          config {:attachment_id 25
+                  :bucket "my-bucket"
+                  :filename "test/cat.jpg"
+                  :urls_by_size urls-by-size
+                  :params_by_size {:thumbnail {:edit_mode "crop"
+                                               :crop {:x 0 :y 0 :w 400 :h 400}}
+                                   :medium {:edit_mode "scale"}
+                                   :large {:edit_mode "scale"}}}
+          db {:img-config config
+              :crop-params nil
+              :edit-mode :scale
               :current-size {:size_name "large"
                              :width 1024
-                             :height 1024}}]
+                             :height 1024}
+              :sizes sizes}]
 
-      (is (= {:attachment_id 25
-              :params_by_size {:thumbnail {:edit_mode "crop"
-                                           :crop {:x 0 :y 0 :w 300 :h 150}}
-                               :medium {:edit_mode "scale"}
-                               :large {:edit_mode "crop"
-                                       :crop {:x 50 :y 200 :w 2000 :h 2000}}}}
+      ;; updating large to a 2000x2000 (+ 50,200) crop
+      (is (= (assoc-in config
+                       [:urls_by_size :large]
+                       (str "https://res.cloudinary.com"
+                            "/my-bucket/image/upload"
+                            "/w_1024,h_1024,c_lfill"
+                            "/test/cat.jpg"))
              (crop/db->update-sizes-config db)))
 
-      (is (= {:attachment_id 25
-              :params_by_size {:thumbnail {:edit_mode "crop"
-                                           :crop {:x 50 :y 200 :w 2000 :h 2000}}
-                               :medium {:edit_mode "scale"}
-                               :large {:edit_mode "scale"}}}
-             (crop/db->update-sizes-config
-              (assoc db :current-size {:size_name "thumbnail"}))))
-
-      (is (= {:attachment_id 25
-              :params_by_size {:thumbnail {:edit_mode "scale"}
-                               :medium {:edit_mode "scale"}
-                               :large {:edit_mode "scale"}}}
+      ;; updating current size to thumbnail and changing the crop size
+      (is (= (-> config
+                 (assoc-in
+                  [:urls_by_size :thumbnail]
+                  (str "https://res.cloudinary.com"
+                       "/my-bucket/image/upload"
+                       "/x_50,y_200,w_1000,h_1000,c_crop"
+                       "/w_150,h_150,c_scale"
+                       "/test/cat.jpg"))
+                 (assoc-in
+                  [:params_by_size :thumbnail]
+                  {:edit_mode "crop"
+                   :crop {:x 50 :y 200 :w 1000 :h 1000}}))
              (crop/db->update-sizes-config
               (assoc db
-                     :current-size {:size_name "thumbnail"}
-                     :edit-mode :scale)))))))
+                     :edit-mode :crop
+                     :current-size {:size_name "thumbnail"
+                                    :width 150
+                                    :height 150}
+                     :crop-params {:x 50 :y 200 :w 1000 :h 1000}))))
+
+      ;; updating thumbnail to scale mode
+      (is (= (-> config
+                 (assoc-in
+                  [:urls_by_size :thumbnail]
+                  (str "https://res.cloudinary.com"
+                       "/my-bucket/image/upload"
+                       "/w_150,h_150,c_lfill"
+                       "/test/cat.jpg"))
+                 (assoc-in
+                  [:params_by_size :thumbnail]
+                  {:edit_mode "scale"})
+                 (get :params_by_size))
+             (:params_by_size (crop/db->update-sizes-config
+                               (assoc db
+                                      :crop-params nil
+                                      :current-size {:size_name "thumbnail"
+                                                     :width 150
+                                                     :height 150}
+                                      :edit-mode :scale))))))))
 
 (deftest test-unsaved-changes?
 
@@ -127,36 +182,11 @@
                                         :crop-params {:x 0 :y 0 :w 300 :h 300}
                                         :current-size {:size_name "thumbnail"}})))))
 
-(deftest test-save-current-size
-  (let [cofx {:db {:img-config {:attachment_id 25
-                                :params_by_size {:thumbnail
-                                                 {:edit_mode "crop"
-                                                  :crop {:x 0 :y 0 :w 150 :h 150}}}}
-                   :edit-mode :crop
-                   :crop-params {:x 50 :y 50 :w 300 :h 300}
-                   :current-size {:size_name "thumbnail"}}}]
-
-    ;; Saving updates the params by current-size,
-    ;; AND sends an API request
-    (is (= {:db {:img-config {:attachment_id 25
-                              :params_by_size {:thumbnail
-                                               {:edit_mode "crop"
-                                                :crop {:x 50 :y 50 :w 300 :h 300}}}}
-                 :edit-mode :crop
-                 :crop-params {:x 50 :y 50 :w 300 :h 300}
-                 :current-size {:size_name "thumbnail"}}
-            ::crop/save-current-size! {:attachment_id 25
-                                       :params_by_size {:thumbnail
-                                                        {:edit_mode "crop"
-                                                         :crop {:x 50 :y 50 :w 300 :h 300}}}}}
-           (crop/save-current-size cofx)))))
-
 (deftest test-cloudinary-params
 
   (testing "it accounts for config, current-size, crop-params, and edit-mode"
     (is (= {:mode :crop
             :bucket "my-bucket"
-            :folder "test"
             :filename "test/cat.jpg"
             :x 123
             :y 456
@@ -166,7 +196,6 @@
            (crop/cloudinary-params
             {:edit-mode :crop
              :img-config {:bucket "my-bucket"
-                          :folder "test"
                           :filename "test/cat.jpg"
                           :params_by_size "THIS SHOULD BE IGNORED"
                           :any-other-stuff "should also be ignored"}

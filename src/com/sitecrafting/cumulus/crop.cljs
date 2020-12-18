@@ -133,10 +133,14 @@
   (not= (saved-params db) (params-to-save db)))
 
 (defn db->update-sizes-config
-  [{:keys [img-config current-size] :as db}]
-  (assoc-in img-config
-            [:params_by_size (size->name current-size)]
-            (params-to-save db)))
+  [{:keys [current-size] :as db}]
+  (let [k (size->name current-size)
+        params (params-to-save db)]
+    (as-> db $
+      (assoc-in $ [:img-config :params_by_size k] params)
+      (assoc-in $ [:img-config :urls_by_size k]
+                (-> $ cloudinary-params cloud/url))
+      (:img-config $))))
 
 (defn save-current-size [{:keys [db]}]
   (let [config (db->update-sizes-config db)]
@@ -163,11 +167,13 @@
 
 (rf/reg-fx
  ::save-current-size!
- (fn [{:keys [attachment_id params_by_size]}]
+ (fn [{:keys [attachment_id params_by_size urls_by_size]}]
    (-> (js/fetch (str "/wp-json/cumulus/v1/attachment/" attachment_id)
                  #js {:method "POST"
                       :headers #js {"content-type" "application/json"}
-                      :body (js/JSON.stringify (clj->js params_by_size))})
+                      :body (js/JSON.stringify
+                             (clj->js {:params_by_size params_by_size
+                                       :urls_by_size urls_by_size}))})
        (.then (fn [response]
                 #_(js/console.log response))))))
 

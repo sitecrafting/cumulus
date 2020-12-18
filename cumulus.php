@@ -128,20 +128,20 @@ add_filter('cumulus/settings/defaults', function() {
 add_filter('wp_get_attachment_image_src', function($src, $id, $size) {
   // Persist a mapping of attachment IDs to crop URLs, to save
   // database calls
-  static $sizesById;
-  if (!isset($sizesById)) {
-    $sizesById = [];
+  static $configsById;
+  if (!isset($configsById)) {
+    $configsById = [];
   }
 
-  if (!isset($sizesById[$id])) {
+  if (!isset($configsById[$id])) {
     // Remember sizes for this attachment, if found.
-    $sizesById[$id] = get_post_meta($id, 'cumulus_image', true) ?: [];
+    $configsById[$id] = get_post_meta($id, 'cumulus_image', true) ?: [];
   }
 
   // Render the customized crop src, if there is one for this size.
-  $src[0] = $sizesById[$id]['urls_by_size'][$size] ?? $src[0];
+  $src[0] = $configsById[$id]['urls_by_size'][$size] ?? $src[0];
   // TODO remove
-  $src[0] = $sizesById[$id]['sizes'][$size] ?? $src[0];
+  $src[0] = $configsById[$id]['sizes'][$size] ?? $src[0];
 
   return $src;
 }, 10, 3);
@@ -175,8 +175,7 @@ add_action('rest_api_init', function() {
         'full_height'    => $meta['cloudinary_data']['height'],
         // `params_by_size.my_image_size` contains the saved transform params for a given crop
         'params_by_size' => $meta['params_by_size'] ?? [],
-        // `detail.sizes` is where the Cloudinary URLs will show up
-        'detail'         => $meta,
+        'urls_by_size'   => $meta['urls_by_size'] ?? [],
         // NOTE: global sizes come through via wp_localize_script
       ];
     },
@@ -189,21 +188,15 @@ add_action('rest_api_init', function() {
   register_rest_route('cumulus/v1', '/attachment/(?P<id>\d++)', [
     'methods'  => 'POST',
     'callback' => function($req) {
-      if (!is_user_logged_in()) {
-        return;
-      }
-
       $id     = $req->get_param('id');
       $meta   = get_post_meta($id, 'cumulus_image', true) ?: [];
-      $params = $req->get_json_params();
+      $config = array_merge($meta, $req->get_json_params());
 
-      update_post_meta($id, 'cumulus_image', array_merge($meta, [
-        'params_by_size' => $params,
-      ]));
+      update_post_meta($id, 'cumulus_image', array_merge($meta, $config));
 
       return [
         'success'        => true,
-        'params_by_size' => $params,
+        'cumulus_config' => $config,
       ];
     },
   ]);
