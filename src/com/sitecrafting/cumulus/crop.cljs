@@ -84,11 +84,18 @@
   (let [{:keys [width height]} current-size]
     (when (> height 0) (/ width height))))
 
+(defn- too-narrow? [crop-params current-size]
+  (>= (:width current-size) (:w crop-params)))
+
+(defn- too-short? [crop-params current-size]
+  (>= (:height current-size) (:h crop-params)))
+
 (defn crop-params [{:keys [crop-params current-size]}]
-  (let [{:keys [x y w h]} crop-params
-        {min-width :width min-height :height} current-size
-        x-axis-limits (when (>= min-width w) {:x 0 :w min-width})
-        y-axis-limits (when (>= min-height h) {:y 0 :h min-height})]
+  (let [{min-width :width min-height :height} current-size
+        x-axis-limits (when (too-narrow? crop-params current-size)
+                        {:x 0 :w min-width})
+        y-axis-limits (when (too-short? crop-params current-size)
+                        {:y 0 :h min-height})]
     (merge crop-params x-axis-limits y-axis-limits)))
 
 (defn scaling-factor
