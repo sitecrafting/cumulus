@@ -50,12 +50,29 @@
 
   (url {:mode :crop
         :bucket "ctamayo"
+        :x 0
+        :y 0
+        :w 2000
+        :h 1650
+        ;; no target size
+        :filename "cumulus-test/grasshopper.jpg"})
+  ;; => "https://res.cloudinary.com/ctamayo/image/upload/w_2000,h_1650,c_crop/c_scale/cumulus-test/grasshopper.jpg"
+
+  (url {:mode :crop
+        :bucket "ctamayo"
         :x 450
         :y 500
         :w 2000
         :h 1650
+        :target-size [1000]
         :filename "cumulus-test/grasshopper.jpg"})
-  ;; => "https://res.cloudinary.com/ctamayo/image/upload/x_450,y_500,w_2000,h_1650,c_crop/c_scale/grasshopper.jpg"
+  ;; => "https://res.cloudinary.com/ctamayo/image/upload/x_450,y_500,w_2000,h_1650,c_crop/w_1000,c_scale/cumulus-test/grasshopper.jpg"
+
+  (url {:mode :scale
+        :bucket "ctamayo"
+        :target-size [2000 1650]
+        :filename "cumulus-test/grasshopper.jpg"})
+  ;; => "https://res.cloudinary.com/ctamayo/image/upload/w_2000,h_1650,c_lfill/cumulus-test/grasshopper.jpg"
 
   (url {:mode :scale
         :bucket "ctamayo"

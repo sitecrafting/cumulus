@@ -123,7 +123,7 @@
   (merge {:mode edit-mode
           :target-size [(:width current-size)
                         (:height current-size)]}
-         (select-keys img-config [:bucket :folder :filename])
+         (select-keys img-config [:bucket :filename])
          crop-params))
 
 (defn set-crop-params [db [_ params]]
