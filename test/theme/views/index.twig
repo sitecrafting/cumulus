@@ -9,6 +9,7 @@
   <div>
     {% set img = get_post(post.meta(field)) %}
     <h2>{{ img.title }}</h2>
+    <p>{{ img.caption }}</p>
 
     <h3>Full size</h2>
     <img src="{{ img.src }}" alt="{{ img.alt }}">
@@ -21,6 +22,10 @@
     <h3>Custom Large</h3>
     <img src="{{ img.src('custom_large') }}" alt="{{ img.alt }}">
     <pre>{{ img.src('custom_large') }}</pre>
+
+    <h3>Really tall</h3>
+    <img src="{{ img.src('really_tall') }}" alt="{{ img.alt }}">
+    <pre>{{ img.src('really_tall') }}</pre>
 
     <h3>Medium</h3>
     <img src="{{ img.src('medium') }}" alt="{{ img.alt }}">
