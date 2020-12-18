@@ -49,6 +49,20 @@
       (is (= med (crop/saved-params
                   (assoc db :current-size {:size_name "medium"})))))))
 
+(deftest test-check-dimensions
+
+  (testing "it reports dimension errors"
+    (let [bigger {:size_name "custom" :width 750 :height 750}
+          smaller {:size_name "custom" :width 300 :height 300}
+          db {:crop-params {:x 100 :y 100 :w 500 :h 500}
+              :current-size {}}
+          with-size #(assoc %1 :current-size %2)]
+      (is (= {:global "Your image is too small to be displayed at this size. Distortion will occur."}
+             (:errors (crop/check-dimensions
+                       (with-size db bigger)))))
+      (is (= {} (:errors (crop/check-dimensions
+                          (with-size (assoc db :errors {:global "OH NO"}) smaller))))))))
+
 (deftest test-update-current-size
 
   (testing "it updates :current-size with the passed map"

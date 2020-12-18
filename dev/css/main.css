@@ -85,3 +85,11 @@
 .cumulus-control button[disabled], .cumulus-control .button[disabled] {
   cursor: not-allowed;
 }
+
+.cumulus-error {
+  padding: 1em;
+  border: 1px dashed #800;
+  background: #ffe0e4;
+  font-weight: 700;
+  color: #800;
+}

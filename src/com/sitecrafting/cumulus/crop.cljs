@@ -85,10 +85,14 @@
     (when (> height 0) (/ width height))))
 
 (defn- too-narrow? [crop-params current-size]
-  (>= (:width current-size) (:w crop-params)))
+  (> (:width current-size) (:w crop-params)))
 
 (defn- too-short? [crop-params current-size]
-  (>= (:height current-size) (:h crop-params)))
+  (> (:height current-size) (:h crop-params)))
+
+(defn- too-small? [crop-params current-size]
+  (or (too-narrow? crop-params current-size)
+      (too-short? crop-params current-size)))
 
 (defn crop-params [{:keys [crop-params current-size]}]
   (let [{min-width :width min-height :height} current-size
@@ -103,19 +107,29 @@
   [{:keys [dimensions]}]
   (/ (:natural-width dimensions) (:rendered-width dimensions)))
 
-(defn update-current-size [{:keys [img-config current-size edit-mode] :as db}
-                           [_ new-size]]
-  (let [saved-size (get-in img-config [:params_by_size (size->name new-size)])
+(defn check-dimensions [{:keys [crop-params current-size] :as db}]
+  (if (too-small? crop-params current-size)
+    (assoc-in db [:errors :global]
+              (str "Your image is too small to be displayed at this size."
+                   " Distortion will occur."))
+    (update db :errors #(dissoc % :global))))
+
+(defn update-current-size [db [_ new-size]]
+  (let [{:keys [img-config current-size edit-mode]} db
+        saved-size (get-in img-config [:params_by_size (size->name new-size)])
         ;; Default to scale mode
         saved-edit-mode (keyword (:edit_mode saved-size "scale"))
         saved-crop (:crop saved-size)
         edit-mode (if (= (size->name current-size) (size->name new-size))
                     edit-mode
                     saved-edit-mode)]
-    (assoc db
-           :current-size new-size
-           :edit-mode edit-mode
-           :crop-params saved-crop)))
+    (when (:test db) (prn saved-crop))
+    (-> db
+        (assoc
+         :current-size new-size
+         :edit-mode edit-mode
+         :crop-params saved-crop)
+        (check-dimensions))))
 
 (defn saved-params [{:keys [img-config current-size]}]
   (get-in img-config [:params_by_size (size->name current-size)]))
@@ -174,12 +188,19 @@
 
 (rf/reg-event-db ::update-current-size update-current-size)
 (rf/reg-event-fx ::save-current-size save-current-size)
+(rf/reg-event-db ::error (fn [db [_ k message]]
+                           (assoc-in db [:errors k] message)))
+
+(comment
+  @(rf/dispatch [::error :global nil])
+  @(rf/dispatch [::error :global "OH NO"]))
 
 (rf/reg-sub ::img-config :img-config)
 (rf/reg-sub ::current-size :current-size)
 (rf/reg-sub ::saved-params saved-params)
 (rf/reg-sub ::params-to-save params-to-save)
 (rf/reg-sub ::debug? :debug?)
+(rf/reg-sub ::global-error #(get-in % [:errors :global]))
 
 (rf/reg-fx
  ::save-current-size!

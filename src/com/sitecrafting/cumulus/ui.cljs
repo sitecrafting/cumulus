@@ -115,6 +115,7 @@
 
 (defn crop-ui []
   (let [debug? @(rf/subscribe [::c/debug?])
+        global-error @(rf/subscribe [::c/global-error])
         img-url @(rf/subscribe [::c/cloudinary-url])
         crop-params @(rf/subscribe [::c/crop-params])
         edit-mode @(rf/subscribe [::c/edit-mode])
@@ -202,5 +203,7 @@
                                 (not unsaved-changes?))
                      :on-click reset-crop!}
             "Reset"]]
+          (when global-error
+            [:p.cumulus-error global-error])
           (when debug?
             [debugger])]]]]]]))
