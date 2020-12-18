@@ -14,6 +14,14 @@ services:
       - ./scripts/setup-wordpress.sh
       - ./scripts/install-wp-tests.sh
 
+  testdb:
+    type: mysql:5.7
+    portforward: true
+    creds:
+      user: test
+      password: test
+      database: test
+
   #  cljs:
   #    type: compose
   #
@@ -63,7 +71,7 @@ tooling:
     service: cljs
 
   clean:
-    cmd: rm -rf .shadow-cljs node_modules dist/* .nrepl-port
+    cmd: rm -rf .shadow-cljs node_modules dist/* .nrepl-port wp test/wp test/wp-tests-lib *.tar.gz .zip
     description: Cleanup the dev environment, to restart with a blank slate
     service: cljs
 

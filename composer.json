@@ -15,9 +15,14 @@
         "wpackagist-plugin/advanced-custom-fields": "^5.9"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.2",
+        "phpunit/phpunit": "^7.0",
         "symfony/dotenv": "^5.2",
         "timber/timber": "^2.0"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Cumulus\\Integration\\": "test/integration/"
+        }
     },
     "extra": {
         "installer-paths": {

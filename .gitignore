@@ -5,6 +5,8 @@
 /target
 /vendor
 /wp
+/test/wp-tests-lib
+/test/wp
 
 .env
 
