@@ -7,7 +7,8 @@
 }
 
 body {
-  width: 50rem;
+  /* allow body to fit large 1024x1024 images */
+  width: 1200px;
   max-width: 100%;
   margin-right: auto;
   margin-left: auto;
