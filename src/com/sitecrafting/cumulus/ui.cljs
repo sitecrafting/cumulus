@@ -119,10 +119,12 @@
         cropping? (= :crop edit-mode)
         {:keys [width height] :as current-size} @(rf/subscribe [::c/current-size])
         {:keys [sizes full_url full_width full_height]} @(rf/subscribe [::c/img-config])
+        {saved-mode :edit_mode} @(rf/subscribe [::c/saved-params])
         unsaved-changes? @(rf/subscribe [::c/unsaved-changes?])
         save-crop! #(when unsaved-changes?
                       (rf/dispatch [::c/save-current-size]))
         reset-crop! #(when unsaved-changes?
+                       (rf/dispatch [::c/update-edit-mode (keyword saved-mode)])
                        (rf/dispatch [::c/update-current-size current-size]))]
     [:div.cumulus-crop-ui
      [:nav
