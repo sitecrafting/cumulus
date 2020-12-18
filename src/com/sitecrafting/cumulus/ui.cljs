@@ -115,6 +115,7 @@
 (defn crop-ui []
   (let [debug? @(rf/subscribe [::c/debug?])
         img-url @(rf/subscribe [::c/cloudinary-url])
+        crop-params @(rf/subscribe [::c/crop-params])
         edit-mode @(rf/subscribe [::c/edit-mode])
         cropping? (= :crop edit-mode)
         {:keys [width height] :as current-size} @(rf/subscribe [::c/current-size])
@@ -182,7 +183,10 @@
          [:footer
           [:span.cumulus-control
            [:button {:class "button button-primary"
-                     :disabled (not unsaved-changes?)
+                     :disabled (or
+                                (nil? crop-params)
+                                (not unsaved-changes?))
+                     :title (when (nil? crop-params) "Please choose a crop")
                      :on-click save-crop!}
             "Save"]
            [:button {:class "button"
