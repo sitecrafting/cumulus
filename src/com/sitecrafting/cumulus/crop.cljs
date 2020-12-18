@@ -84,6 +84,13 @@
   (let [{:keys [width height]} current-size]
     (when (> height 0) (/ width height))))
 
+(defn crop-params [{:keys [crop-params current-size]}]
+  (let [{:keys [x y w h]} crop-params
+        {min-width :width min-height :height} current-size
+        x-axis-limits (when (>= min-width w) {:x 0 :w min-width})
+        y-axis-limits (when (>= min-height h) {:y 0 :h min-height})]
+    (merge crop-params x-axis-limits y-axis-limits)))
+
 (defn scaling-factor
   "Compute the natural -> rendered scaling factor for an accurate crop area."
   [{:keys [dimensions]}]
@@ -201,7 +208,7 @@
 (rf/reg-sub ::aspect-ratio aspect-ratio)
 (rf/reg-sub ::dimensions :dimensions)
 (rf/reg-sub ::scaling-factor scaling-factor)
-(rf/reg-sub ::crop-params :crop-params)
+(rf/reg-sub ::crop-params crop-params)
 (rf/reg-sub ::unsaved-changes? unsaved-changes?)
 (rf/reg-event-db ::set-crop-params set-crop-params)
 

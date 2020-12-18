@@ -11,6 +11,31 @@
                              :natural-width 1000}}]
       (is (= 2 (crop/scaling-factor cofx))))))
 
+(deftest test-crop-params
+
+  (testing "it returns the normal :crop-params by default"
+    (let [db {:crop-params {:x 0 :y 1 :w 2 :h 3}}]
+      (is (= {:x 0 :y 1 :w 2 :h 3} (crop/crop-params db)))))
+
+  (testing "it enforces minimum dimensions"
+    (let [db {:crop-params {:x 100 :y 100 :w 500 :h 500}
+              :current-size {:size_name "custom"
+                             :width "this gets overwritten"
+                             :height "this gets overwritten"}}
+          with-dimensions (fn [[w h]]
+                            (-> db
+                                (assoc-in [:current-size :width] w)
+                                (assoc-in [:current-size :height] h)))]
+      (testing "when under minimum width"
+        (is (= {:x 0 :y 100 :w 750 :h 500}
+               (crop/crop-params (with-dimensions [750 300])))))
+      (testing "when under minimum height"
+        (is (= {:x 100 :y 0 :w 500 :h 750}
+               (crop/crop-params (with-dimensions [300 750])))))
+      (testing "when under both minima"
+        (is (= {:x 0 :y 0 :w 750 :h 750}
+               (crop/crop-params (with-dimensions [750 750]))))))))
+
 (deftest test-saved-params
 
   (testing "it returns the saved params for the current size"
