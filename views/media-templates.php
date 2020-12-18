@@ -39,6 +39,11 @@ jQuery(function($){
       if (matches.length > 1) {
         $.ajax('/wp-json/cumulus/v1/attachment/' + matches[1], {
           success: function(data) {
+            if (!data.uploaded) {
+              // Cloudinary settings do not apply to this image; bail.
+              return;
+            }
+
             // Check again in case the UI was already loaded.
             if ($('.cumulus-edit-crops-btn').length) {
               return;

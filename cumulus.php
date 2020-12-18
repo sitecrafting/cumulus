@@ -160,13 +160,17 @@ add_action('rest_api_init', function() {
       $meta = get_post_meta($id, 'cumulus_image', true);
 
       if (!$meta) {
-        return [];
+        return [
+          'attachment_id' => $id,
+          'uploaded'      => false,
+        ];
       }
 
       $cloudinaryData = $meta['cloudinary_data'];
 
       return [
         'attachment_id'  => $id,
+        'uploaded'       => true,
         'nonce'          => wp_create_nonce("cumulus_attachment_$id"),
         'version'        => $cloudinaryData['version'],
         // NOTE: public_id also includes the folder to which the image was uploaded, if any.
