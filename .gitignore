@@ -7,6 +7,7 @@
 /wp
 /test/wp-tests-lib
 /test/wp
+/cumulus
 
 .env
 
