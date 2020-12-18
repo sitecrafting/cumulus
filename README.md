@@ -133,7 +133,7 @@ This will install WP Core and activate the Cumulus plugin within the install. It
 To build JavaScript assets for the Lando WP install, run:
 
 ```
-shadow-cljs release main
+yarn build
 ```
 
 This will compile the JS code to `dist/js/main.js`.
