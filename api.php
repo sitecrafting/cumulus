@@ -59,6 +59,25 @@ function should_upload(int $id) : bool {
   return in_array(mime_content_type($path), $supportedTypes);
 }
 
+function default_url(string $cloud, array $size, array $img) : string {
+  $width  = $size['width'] ?? null;
+  $height = $size['height'] ?? null;
+
+  $resize = implode(',', array_filter([
+    ($width ? "w_{$width}" : ''),
+    ($height ? "h_{$height}" : ''),
+    'c_lfill',
+  ]));
+
+  return sprintf(
+    'https://res.cloudinary.com/%s/image/upload/%s/%s.%s',
+    $cloud,
+    $resize,
+    $img['public_id'],
+    $img['format']
+  );
+}
+
 function upload_attachment(int $id) : void {
   $path = get_attached_file($id);
   if (!$path) {
@@ -89,32 +108,15 @@ function upload_attachment(int $id) : void {
   if ($result) {
     $registeredSizes = wp_get_registered_image_subsizes();
 
-    $cloud = cloud_name();
-
     // TODO farm most of this out to a filter
-    $urlsBySize = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes, $result, $cloud) {
-      // Avoid crops of zero width or height.
-      $width  = $registeredSizes[$size]['width'];
-      $height = $registeredSizes[$size]['height'];
-      $dimensionParams = implode(',', array_filter([
-        ($width ? "w_{$width}" : ''),
-        ($height ? "h_{$height}" : ''),
-        'c_lfill',
-      ]));
-
+    $urlsBySize = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes, $result) {
       // Compute the scale (lfill) URL for this size.
-      $url = sprintf(
-        'https://res.cloudinary.com/%s/image/upload/%s/%s.%s',
-        $cloud,
-        $dimensionParams,
-        $result['public_id'], // filename
-        $result['format'] // extension
-      );
+      $url = default_url(cloud_name(), $registeredSizes[$size], (array) $result);
 
       $url = apply_filters("cumulus/crop_url/$size", $url, [
         'size'       => $size,
         'dimensions' => $registeredSizes[$size],
-        'cloud_name' => $cloud,
+        'cloud_name' => cloud_name(),
         'response'   => $result,
       ]);
 
