@@ -5,9 +5,14 @@ config:
 
 services:
   appserver:
+    run_as_root:
+      - apt-get update
+      - apt-get install zip jq subversion -y
+
     run:
       - composer install
       - ./scripts/setup-wordpress.sh
+      - ./scripts/install-wp-tests.sh
 
   #  cljs:
   #    type: compose
@@ -35,6 +40,16 @@ tooling:
   install:
     cmd: ./scripts/setup-wordpress.sh
     description: Install and configure WordPress
+    service: appserver
+
+  install-wp-tests:
+    cmd: ./scripts/install-wp-tests.sh
+    description: Install and configure WordPress Test Suite
+    service: appserver
+
+  test:
+    cmd: ./vendor/bin/phpunit
+    description: Run PHPUnit tests
     service: appserver
 
   init-cumulus:
