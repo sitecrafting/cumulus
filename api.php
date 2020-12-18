@@ -106,12 +106,13 @@ function upload_attachment(int $id) : void {
   }
 
   if ($result) {
+    $result = (array) $result;
     $registeredSizes = wp_get_registered_image_subsizes();
 
     // TODO farm most of this out to a filter
     $urlsBySize = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes, $result) {
       // Compute the scale (lfill) URL for this size.
-      $url = default_url(cloud_name(), $registeredSizes[$size], (array) $result);
+      $url = default_url(cloud_name(), $registeredSizes[$size], $result);
 
       $url = apply_filters("cumulus/crop_url/$size", $url, [
         'size'       => $size,
@@ -124,6 +125,9 @@ function upload_attachment(int $id) : void {
         $size => $url,
       ]);
     }, []);
+
+    // Ensure we also serve the full URL from Cloudinary
+    $urlsBySize['full'] = $result['secure_url'];
 
     $paramsBySize = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes) {
       return array_merge($sizes, [
