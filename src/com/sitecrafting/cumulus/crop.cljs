@@ -57,6 +57,7 @@
          mode (keyword (:edit_mode params))
          crop (:crop params)]
      {:debug? (:WP_DEBUG config)
+      :nonce (:nonce config)
       :img-config config
       :current-size current-size
       :edit-mode mode
@@ -145,7 +146,8 @@
 (defn save-current-size [{:keys [db]}]
   (let [config (db->update-sizes-config db)]
     {:db (assoc db :img-config config)
-     ::save-current-size! config}))
+     ::save-current-size! {:config config
+                           :nonce (:nonce db)}}))
 
 
 
@@ -167,10 +169,12 @@
 
 (rf/reg-fx
  ::save-current-size!
- (fn [{:keys [attachment_id params_by_size urls_by_size]}]
+ (fn [{nonce :nonce
+       {:keys [attachment_id params_by_size urls_by_size]} :config}]
    (-> (js/fetch (str "/wp-json/cumulus/v1/attachment/" attachment_id)
                  #js {:method "POST"
-                      :headers #js {"content-type" "application/json"}
+                      :headers #js {"content-type" "application/json"
+                                    "x-nonce" nonce}
                       :body (js/JSON.stringify
                              (clj->js {:params_by_size params_by_size
                                        :urls_by_size urls_by_size}))})

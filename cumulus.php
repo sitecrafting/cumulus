@@ -167,6 +167,7 @@ add_action('rest_api_init', function() {
 
       return [
         'attachment_id'  => $id,
+        'nonce'          => wp_create_nonce("cumulus_attachment_$id"),
         'version'        => $cloudinaryData['version'],
         // NOTE: public_id also includes the folder to which the image was uploaded, if any.
         'filename'       => $cloudinaryData['public_id'] . '.' . $cloudinaryData['format'],
@@ -188,7 +189,15 @@ add_action('rest_api_init', function() {
   register_rest_route('cumulus/v1', '/attachment/(?P<id>\d++)', [
     'methods'  => 'POST',
     'callback' => function($req) {
-      $id     = $req->get_param('id');
+      $id    = $req->get_param('id');
+      $nonce = $req->get_header('x-nonce');
+
+      if (!wp_verify_nonce($nonce, "cumulus_attachment_$id")) {
+        return [
+          'success' => false,
+        ];
+      }
+
       $meta   = get_post_meta($id, 'cumulus_image', true) ?: [];
       $config = array_merge($meta, $req->get_json_params());
 

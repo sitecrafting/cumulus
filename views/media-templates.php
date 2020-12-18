@@ -52,6 +52,7 @@ jQuery(function($){
             CUMULUS_CONFIG.filename       = data.filename;
             CUMULUS_CONFIG.params_by_size = data.params_by_size;
             CUMULUS_CONFIG.urls_by_size   = data.urls_by_size;
+            CUMULUS_CONFIG.nonce          = data.nonce;
 
             $actions.append($customizeImageCropsBtn);
           },
