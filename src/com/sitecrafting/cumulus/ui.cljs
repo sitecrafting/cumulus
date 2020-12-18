@@ -20,7 +20,7 @@
 (defn dimensions-cofx
   "Inject the natural and rendered image dimensions into the cofx map."
   [cofx _]
-  (let [img @!img]
+  (when-let [img @!img]
     (assoc cofx :dimensions {:natural-width (.-naturalWidth img)
                              :natural-height (.-naturalHeight img)
                              :rendered-width (.-width img)
