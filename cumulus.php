@@ -39,11 +39,11 @@ define('CUMULUS_VIEW_DIR', __DIR__ . '/views/');
  * TODO implement a settings panel where admins can do this on their own.
  */
 add_action('init', function() {
-  $settings = apply_filters('cumulus/settings/defaults', []);
+  $settings = Cumulus\settings();
 
   Configuration::instance([
     'account'      => [
-      'cloud_name' => Cumulus\cloud_name(),
+      'cloud_name' => $settings['cloud_name'],
       'api_key'    => $settings['api_key'],
       'api_secret' => $settings['api_secret'],
     ],

@@ -14,6 +14,20 @@ use Cloudinary\Api\Upload\UploadApi;
 
 
 /**
+ * Get the current Cumulus settings, taking constants and environment variables
+ * into account as described here:
+ *
+ * https://github.com/sitecrafting/cumulus/#managing-cloudinary-settings
+ * @return array an array with (at least) the following keys:
+ * - cloud_name
+ * - api_key
+ * - api_secret
+ */
+function settings() : array {
+  return apply_filters('cumulus/settings', []);
+}
+
+/**
  * Get the currently configured Cloudinary Cloud Name setting.
  */
 function cloud_name() : string {
