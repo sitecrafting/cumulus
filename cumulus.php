@@ -39,11 +39,7 @@ define('CUMULUS_VIEW_DIR', __DIR__ . '/views/');
  * TODO implement a settings panel where admins can do this on their own.
  */
 add_action('init', function() {
-  $settings = apply_filters('cumulus/settings', [
-    'cloud_name' => get_option('cumulus_cloud_name'),
-    'api_key'    => get_option('cumulus_api_key'),
-    'api_secret' => get_option('cumulus_api_secret'),
-  ]);
+  $settings = apply_filters('cumulus/settings/defaults', []);
 
   Configuration::instance([
     'account'      => [
@@ -108,6 +104,7 @@ add_filter('cumulus/settings/defaults', function() {
     'cloud_name' => get_option('cumulus_cloud_name'),
     'api_key'    => get_option('cumulus_api_key'),
     'api_secret' => get_option('cumulus_api_secret'),
+    'folder'     => get_option('cumulus_folder'),
   ];
 
   return $settings;
@@ -239,7 +236,8 @@ add_filter('cumulus/upload_options', function(array $options) {
 
   $folder = Cumulus\folder();
   if ($folder) {
-    $options['public_id'] = $folder . '/' . $options['public_id'];
+    $options['public_id'] = $options['public_id'];
+    $options['folder']    = $folder;
   }
 
   return $options;
