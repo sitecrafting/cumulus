@@ -19,7 +19,7 @@
                        :h 500
                        :target-size [150 150]})))
 
-    ;; Dimensions of zero should get filtered out
+    ;; Dimensions of zero should get filtered out...
     (is (= "https://res.cloudinary.com/my-bucket/image/upload/x_123,y_456,w_1000,h_500,c_crop/w_150,c_scale/test/cat.jpg"
            (cloud/url {:mode :crop
                        :bucket "my-bucket"
@@ -35,6 +35,16 @@
                        :filename "test/cat.jpg"
                        :x 123
                        :y 456
+                       :w 1000
+                       :h 500
+                       :target-size [0 150]})))
+    ;; ...but NOT offset values! (x, y)
+    (is (= "https://res.cloudinary.com/my-bucket/image/upload/x_0,y_0,w_1000,h_500,c_crop/h_150,c_scale/test/cat.jpg"
+           (cloud/url {:mode :crop
+                       :bucket "my-bucket"
+                       :filename "test/cat.jpg"
+                       :x 0
+                       :y 0
                        :w 1000
                        :h 500
                        :target-size [0 150]}))))

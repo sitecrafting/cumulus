@@ -13,9 +13,11 @@
   (let [;; Apply some sensible defaults.
         params (-> params
                    ;; Set a default crop strategy of "c_crop"
-                   (assoc :c (:c params "crop")))]
+                   (assoc :c (:c params "crop")))
+        zero-width-or-height? (fn [k v]
+                                (and (zero? v) (#{:w :h} k)))]
     (join "," (filter seq (map (fn [[k v]]
-                                 (when (and v (not= 0 v))
+                                 (when (and v (not (zero-width-or-height? k v)))
                                    (str (name k) "_" v)))
                                params)))))
 
