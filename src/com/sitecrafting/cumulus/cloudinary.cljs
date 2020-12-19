@@ -32,7 +32,7 @@
 (defmethod url :crop [params]
   (let [manual-crop (select-keys params [:x :y :w :h])
         [w h] (:target-size params)
-        scale {:w w :h h :c "scale"}]
+        scale (merge {:w w :h h :c "scale"} (:rescale-ops params))]
     (params->url (merge params {:transforms [manual-crop scale]}))))
 
 (defmethod url :scale [params]

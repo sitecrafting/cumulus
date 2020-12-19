@@ -16,7 +16,7 @@ add_image_size('custom_small', 300, 185);
 add_image_size('custom_medium', 500, 310);
 add_image_size('custom_large', 1000, 618);
 
-add_image_size('really_tall', 300, 9999);
+add_image_size('soft_crop', 300, 9999, false);
 
 // Only allow custom crops for these specific sizes
 add_filter('cumulus/sizes', function() {
@@ -27,7 +27,7 @@ add_filter('cumulus/sizes', function() {
     'custom_medium',
     'large',
     'custom_large',
-    'really_tall',
+    'soft_crop',
   ];
 });
 

@@ -39,6 +39,17 @@
                        :h 500
                        :target-size [0 150]}))))
 
+  (testing "with rescale ops"
+    ;; rescale-ops apply to the scale operation after cropping, e.g. for soft-cropping
+    (is (= "https://res.cloudinary.com/my-bucket/image/upload/w_1000,h_500,c_crop/w_250,h_300,c_limit/test/cat.jpg"
+           (cloud/url {:mode :crop
+                       :bucket "my-bucket"
+                       :filename "test/cat.jpg"
+                       :target-size [250 300]
+                       :rescale-ops {:c "limit"}
+                       :w 1000
+                       :h 500}))))
+
   ;; c should default to lfill
   ;; https://cloudinary.com/documentation/image_transformations#lfill_limit_fill
   (testing "when scaling"

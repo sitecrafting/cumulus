@@ -308,7 +308,8 @@
             :w 100
             :h 800
             ;; ...but target-size gets shortened down to a height of 400.
-            :target-size [50 400]}
+            :target-size [50 400]
+            :rescale-ops {:c "limit"}}
            (crop/cloudinary-params
             {:edit-mode :crop
              :img-config {:bucket "my-bucket"
@@ -332,10 +333,9 @@
             :y 300
             :w 1980
             :h 2220
-            ;; h is short enough already, so no narrowing,
-            ;; but we do shorten so that the resulting image
-            ;; doesn't get stretched
-            :target-size [1980 2220]}
+            ;; h is short enough already, so no narrowing.
+            :target-size [1980 2220]
+            :rescale-ops {:c "limit"}}
            (crop/cloudinary-params
             {:edit-mode :crop
              :img-config {:bucket "my-bucket"
@@ -349,4 +349,29 @@
                             ;; target-size calculation.
                             :width 1980
                             :height 9999
+                            :hard false}})))
+    (is (= {:mode :crop
+            :bucket "my-bucket"
+            :filename "test/cat.jpg"
+            :x 2000
+            :y 300
+            :w 1980
+            :h 2220
+            ;; h is short enough already, so no narrowing,
+            ;; but we apply a max width
+            :target-size [300 2220]
+            :rescale-ops {:c "limit"}}
+           (crop/cloudinary-params
+            {:edit-mode :crop
+             :img-config {:bucket "my-bucket"
+                          :filename "test/cat.jpg"
+                          :params_by_size "IGNORED"}
+             :crop-params {:x 2000
+                           :y 300
+                           :w 1980
+                           :h 2220}
+             :current-size {;; This is the limiting factor in the
+                            ;; target-size calculation.
+                            :width 300
+                            :height 9000
                             :hard false}})))))

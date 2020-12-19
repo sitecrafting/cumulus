@@ -175,10 +175,12 @@
                        (narrow width)
                        width)
         target-height (if soft-cropping?
-                        (min height crop-height) height)]
+                        (min height crop-height) height)
+        rescale (when soft-cropping? {:rescale-ops {:c "limit"}})]
     (merge {:mode edit-mode
             :target-size [target-width target-height]}
            (select-keys img-config [:bucket :filename])
+           rescale
            crop-params)))
 
 (defn set-crop-params [db [_ params]]
