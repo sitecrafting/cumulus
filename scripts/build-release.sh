@@ -98,7 +98,7 @@ function main() {
     cumulus/README.txt
 
   # remove hackish symlink
-  rm ./cumulus
+  rm -rf ./cumulus
 
   restore_vendor
 
