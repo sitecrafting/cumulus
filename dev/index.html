@@ -35,26 +35,28 @@
         size_name: "thumbnail",
         width: 150,
         height: 150,
+        hard: true,
       }, {
         size_name: "medium",
         width: 300,
         height: 300,
+        hard: true,
       }, {
         size_name: "medium_large",
         width: 768,
         height: 0,
+        hard: true,
       }, {
         size_name: "large",
         width: 1024,
         height: 1024,
-      }, {
-        size_name: "post-thumbnail",
-        width: 1200,
-        height: 9999,
+        hard: true,
       }, {
         size_name: "twentytwenty-fullscreen",
         width: 1980,
         height: 9999,
+        // Only prevent the image from getting too tall
+        hard: false,
       }],
       WP_DEBUG: true,
     };

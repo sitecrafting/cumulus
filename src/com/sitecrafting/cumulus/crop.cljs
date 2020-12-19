@@ -80,26 +80,37 @@
 (defn- size->name [size]
   (keyword (:size_name size)))
 
+(defn current-size [{size :current-size}]
+  (if (:hard size)
+    size
+    (assoc size :height 0)))
+
 (defn aspect-ratio [{:keys [current-size]}]
-  (let [{:keys [width height]} current-size]
-    (when (> height 0) (/ width height))))
+  (let [{:keys [width height hard]} current-size]
+    (when (and hard (> height 0))
+      (/ width height))))
 
-(defn- too-narrow? [crop-params current-size]
-  (> (:width current-size) (:w crop-params)))
+(defn- too-narrow? [dimensions current-size]
+  (> (:width current-size) (:natural-width dimensions)))
 
-(defn- too-short? [crop-params current-size]
-  (> (:height current-size) (:h crop-params)))
+(defn- too-short? [dimensions current-size]
+  (and
+   (:hard current-size)
+   (> (:height current-size) (:natural-height dimensions))))
 
-(defn- too-small? [crop-params current-size]
-  (or (too-narrow? crop-params current-size)
-      (too-short? crop-params current-size)))
+(defn- too-small? [dimensions current-size]
+  (or (too-narrow? dimensions current-size)
+      (too-short? dimensions current-size)))
 
-(defn crop-params [{:keys [crop-params current-size]}]
+(defn crop-params [{:keys [crop-params current-size dimensions]}]
   (let [{min-width :width min-height :height} current-size
-        x-axis-limits (when (too-narrow? crop-params current-size)
-                        {:x 0 :w min-width})
-        y-axis-limits (when (too-short? crop-params current-size)
-                        {:y 0 :h min-height})]
+        {:keys [natural-width natural-height]} dimensions
+        x-axis-limits (when (too-narrow? dimensions current-size)
+                        (prn 'too-narrow!)
+                        {:x 0 :w (min min-width natural-width)})
+        y-axis-limits (when (too-short? dimensions current-size)
+                        (prn 'too-short!)
+                        {:y 0 :h (min min-height natural-height)})]
     (merge crop-params x-axis-limits y-axis-limits)))
 
 (defn scaling-factor
@@ -107,8 +118,8 @@
   [{:keys [dimensions]}]
   (/ (:natural-width dimensions) (:rendered-width dimensions)))
 
-(defn check-dimensions [{:keys [crop-params current-size] :as db}]
-  (if (too-small? crop-params current-size)
+(defn check-dimensions [{:keys [dimensions current-size] :as db}]
+  (if (too-small? dimensions current-size)
     (assoc-in db [:errors :global]
               (str "Your image is too small to be displayed at this size."
                    " Distortion will occur."))
@@ -149,11 +160,26 @@
                                  edit-mode
                                  img-config
                                  crop-params]}]
-  (merge {:mode edit-mode
-          :target-size [(:width current-size)
-                        (:height current-size)]}
-         (select-keys img-config [:bucket :filename])
-         crop-params))
+  (let [{:keys [width height hard]} current-size
+        ;; When soft-cropping, we don't know ahead of time
+        ;; how we will need to limit final dimensions.
+        ;; We need to calculate it on the fly based on selected
+        ;; crop and max height in the declared size.
+        soft-cropping? (and (false? hard) (= :crop edit-mode))
+        crop-height (:h crop-params)
+        narrow (fn [n]
+                 (if (> crop-height height)
+                   (js/Math.round (* (/ height crop-height) n))
+                   n))
+        target-width (if soft-cropping?
+                       (narrow width)
+                       width)
+        target-height (if soft-cropping?
+                        (min height crop-height) height)]
+    (merge {:mode edit-mode
+            :target-size [target-width target-height]}
+           (select-keys img-config [:bucket :filename])
+           crop-params)))
 
 (defn set-crop-params [db [_ params]]
   (assoc db :crop-params params))
@@ -196,7 +222,7 @@
   @(rf/dispatch [::error :global "OH NO"]))
 
 (rf/reg-sub ::img-config :img-config)
-(rf/reg-sub ::current-size :current-size)
+(rf/reg-sub ::current-size current-size)
 (rf/reg-sub ::saved-params saved-params)
 (rf/reg-sub ::params-to-save params-to-save)
 (rf/reg-sub ::debug? :debug?)
@@ -246,3 +272,6 @@
 
 (rf/reg-sub ::cloudinary-params cloudinary-params)
 (rf/reg-sub ::cloudinary-url #(cloud/url (cloudinary-params %)))
+
+(comment
+  @(rf/subscribe [::current-size]))

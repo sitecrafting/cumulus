@@ -109,6 +109,7 @@
               :saved-params  @(rf/subscribe [::c/saved-params])
               :dimensions @(rf/subscribe [::c/dimensions])
               :scaling-factor @(rf/subscribe [::c/scaling-factor])
+              :sizes (:sizes @(rf/subscribe [::c/img-config]))
               :cloudinary-params @(rf/subscribe [::c/cloudinary-params])}]
     [:pre
      (js/JSON.stringify (clj->js info) nil 2)]))
@@ -120,7 +121,7 @@
         crop-params @(rf/subscribe [::c/crop-params])
         edit-mode @(rf/subscribe [::c/edit-mode])
         cropping? (= :crop edit-mode)
-        {:keys [width height] :as current-size}
+        {:keys [width height hard] :as current-size}
         @(rf/subscribe [::c/current-size])
         {:keys [sizes full_url full_width full_height]}
         @(rf/subscribe [::c/img-config])
@@ -170,8 +171,10 @@
            "Image can only scale down from the original dimensions."]
           [:div
            [:span.cumulus-dimension {:data-label "w"} width]
-           ;; TODO svg lock
-           [:span " 🔒 "]
+           (if hard
+             ;; TODO svg lock
+             [:span " 🔒 "]
+             [:span " × "])
            [:span.cumulus-dimension {:data-label "h"} height]]]
 
          [:section.cumulus-resize-options

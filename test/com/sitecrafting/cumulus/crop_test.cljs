@@ -11,30 +11,82 @@
                              :natural-width 1000}}]
       (is (= 2 (crop/scaling-factor cofx))))))
 
+(deftest test-aspect-ratio
+
+  (testing "it honors hard/soft crops"
+    (testing "with hard crop"
+      (is (= 1.618
+             (crop/aspect-ratio
+              {:current-size {:hard   true
+                              :width  1618
+                              :height 1000}}))))
+    (testing "when height is non-positive"
+      (is (nil? (crop/aspect-ratio
+                 {:current-size {:hard   true
+                                 :width  1000
+                                 :height 0}})))
+      (is (nil? (crop/aspect-ratio
+                 {:current-size {:hard  true
+                                 :width 1000}})))
+      (is (nil? (crop/aspect-ratio
+                 {:current-size {:hard   true
+                                 :width  1000
+                                 :height -1}}))))
+    (testing "with soft crop"
+      (is (nil? (crop/aspect-ratio
+                 {:current-size {:hard   false
+                                 :width  1618
+                                 :height 1000}}))))))
+
+(deftest test-current-size
+
+  (testing "it honors hard/soft crops"
+
+    (let [size {:size_name "custom"
+                :width 1000
+                :height 1000
+                :hard true}
+          db {:current-size size}]
+      (testing "with hard crop"
+        (is (= size (crop/current-size db))))
+      (testing "with soft crop"
+        (is (= {:size_name "custom"
+                :width 1000
+                :height 0
+                :hard false}
+               (crop/current-size
+                     (assoc-in db [:current-size :hard] false))))))))
+
 (deftest test-crop-params
 
   (testing "it returns the normal :crop-params by default"
-    (let [db {:crop-params {:x 0 :y 1 :w 2 :h 3}}]
+    (let [db {:crop-params {:x 0 :y 1 :w 2 :h 3}
+              :current-size {:hard true}}]
       (is (= {:x 0 :y 1 :w 2 :h 3} (crop/crop-params db)))))
 
   (testing "it enforces minimum dimensions"
-    (let [db {:crop-params {:x 100 :y 100 :w 500 :h 500}
+    (let [db {:crop-params {:x 100 :y 100 :w 450 :h 450}
+              :dimensions {:natural-width 500
+                           :natural-height 500}
               :current-size {:size_name "custom"
                              :width "this gets overwritten"
-                             :height "this gets overwritten"}}
-          with-dimensions (fn [[w h]]
-                            (-> db
-                                (assoc-in [:current-size :width] w)
-                                (assoc-in [:current-size :height] h)))]
+                             :height "this gets overwritten"
+                             :hard true}}
+          with-size (fn [[w h]]
+                      (-> db
+                          (assoc-in [:current-size :width] w)
+                          (assoc-in [:current-size :height] h)))]
       (testing "when under minimum width"
-        (is (= {:x 0 :y 100 :w 750 :h 500}
-               (crop/crop-params (with-dimensions [750 300])))))
+        ;; bumps up to (min natural-width width)
+        (is (= {:x 0 :y 100 :w 500 :h 450}
+               (crop/crop-params (with-size [750 300])))))
       (testing "when under minimum height"
-        (is (= {:x 100 :y 0 :w 500 :h 750}
-               (crop/crop-params (with-dimensions [300 750])))))
+        ;; bumps up to (min natural-height height)
+        (is (= {:x 100 :y 0 :w 450 :h 500}
+               (crop/crop-params (with-size [300 750])))))
       (testing "when under both minima"
-        (is (= {:x 0 :y 0 :w 750 :h 750}
-               (crop/crop-params (with-dimensions [750 750]))))))))
+        (is (= {:x 0 :y 0 :w 500 :h 500}
+               (crop/crop-params (with-size [750 750]))))))))
 
 (deftest test-saved-params
 
@@ -55,6 +107,7 @@
     (let [bigger {:size_name "custom" :width 750 :height 750}
           smaller {:size_name "custom" :width 300 :height 300}
           db {:crop-params {:x 100 :y 100 :w 500 :h 500}
+              :dimensions {:natural-width 500 :natural-height 500}
               :current-size {}}
           with-size #(assoc %1 :current-size %2)]
       (is (= {:global "Your image is too small to be displayed at this size. Distortion will occur."}
@@ -242,4 +295,58 @@
                            :y 456
                            :w 1000
                            :h 500}
-             :current-size {:width 150 :height 150}})))))
+             :current-size {:width 150 :height 150 :hard true}}))))
+
+  (testing "it handles soft cropping"
+    ;; An intuitive example with nice, round numbers
+    (is (= {:mode :crop
+            :bucket "my-bucket"
+            :filename "test/cat.jpg"
+            :x 123
+            :y 456
+            ;; Crop params stay the same...
+            :w 100
+            :h 800
+            ;; ...but target-size gets shortened down to a height of 400.
+            :target-size [50 400]}
+           (crop/cloudinary-params
+            {:edit-mode :crop
+             :img-config {:bucket "my-bucket"
+                          :filename "test/cat.jpg"
+                          :params_by_size "IGNORED"}
+             :crop-params {:x 123
+                           :y 456
+                           :w 100
+                           :h 800}
+             :current-size {;; This is the limiting factor in the
+                            ;; target-size calculation.
+                            :width 100
+                            :height 400
+                            :hard false}})))
+    ;; A more realistic example, this time without the need for narrowing
+    ;; to get to the target width.
+    (is (= {:mode :crop
+            :bucket "my-bucket"
+            :filename "test/cat.jpg"
+            :x 2000
+            :y 300
+            :w 1980
+            :h 2220
+            ;; h is short enough already, so no narrowing,
+            ;; but we do shorten so that the resulting image
+            ;; doesn't get stretched
+            :target-size [1980 2220]}
+           (crop/cloudinary-params
+            {:edit-mode :crop
+             :img-config {:bucket "my-bucket"
+                          :filename "test/cat.jpg"
+                          :params_by_size "IGNORED"}
+             :crop-params {:x 2000
+                           :y 300
+                           :w 1980
+                           :h 2220}
+             :current-size {;; This is the limiting factor in the
+                            ;; target-size calculation.
+                            :width 1980
+                            :height 9999
+                            :hard false}})))))

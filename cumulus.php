@@ -286,9 +286,12 @@ add_action('admin_enqueue_scripts', function() {
       'size_name' => $key,
       'width'     => $dimensions['width'],
       'height'    => $dimensions['height'],
+      'hard'      => $dimensions['crop'],
     ];
   }, array_keys($supportedSizes), array_values($supportedSizes));
 
+  // This is information we know completely ahead of time, before the front-end
+  // loads any attachment-specific data.
   wp_localize_script('cumulus-crop-ui-js', 'CUMULUS_CONFIG', [
     // TODO remove in favor of "cloud"
     'bucket'   => Cumulus\cloud_name(),
