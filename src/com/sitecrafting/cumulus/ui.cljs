@@ -119,6 +119,7 @@
         global-error @(rf/subscribe [::c/global-error])
         img-url @(rf/subscribe [::c/cloudinary-url])
         crop-params @(rf/subscribe [::c/crop-params])
+        aspect-ratio @(rf/subscribe [::c/aspect-ratio])
         edit-mode @(rf/subscribe [::c/edit-mode])
         cropping? (= :crop edit-mode)
         {:keys [width height hard] :as current-size}
@@ -169,13 +170,15 @@
          [:section.stack-exception
           [:p.description
            "Image can only scale down from the original dimensions."]
-          [:div
-           [:span.cumulus-dimension {:data-label "w"} width]
-           (if hard
+          (if aspect-ratio
+            [:div
+             [:span.cumulus-dimension width]
              ;; TODO svg lock
              [:span " 🔒 "]
-             [:span " × "])
-           [:span.cumulus-dimension {:data-label "h"} height]]]
+             [:span.cumulus-dimension height]]
+            [:div
+             [:span.cumulus-dimension width]
+             [:span " minimum"]])]
 
          [:section.cumulus-resize-options
           [:h3 "Other Image Options"]
@@ -197,7 +200,7 @@
                      :disabled (or
                                 (nil? crop-params)
                                 (not unsaved-changes?))
-                     :title (when (nil? crop-params) "Please choose a crop")
+                     :title (when (nil? crop-params) "Please select a crop")
                      :on-click save-crop!}
             "Save"]
            [:button {:class "button"
