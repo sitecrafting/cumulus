@@ -189,7 +189,7 @@ Start by updating the release number in the `cumulus.php` header comment:
  */
 ```
 
-WP-CLI wp option commandsMake sure you commit this change before creating the actual release. Otherwise your release download will not include this update.
+Make sure you commit this change before creating the actual release. Otherwise your release download will not include this update.
 
 The `scripts/build-release.sh` tool creates a build archive that can be uploaded to GitHub as part of a release.
 
