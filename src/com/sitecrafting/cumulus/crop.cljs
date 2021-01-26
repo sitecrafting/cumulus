@@ -56,6 +56,7 @@
          params (get-in config [:params_by_size (keyword size_name)])
          mode (keyword (:edit_mode params))
          crop (:crop params)]
+     (prn (:full_url config) (:attachment_id config))
      {:debug? (:WP_DEBUG config)
       :nonce (:nonce config)
       :img-config config

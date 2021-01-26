@@ -13,25 +13,28 @@ jQuery(function($){
     }
   }
 
+  function _reloadConfig() {
+    if (
+      com && com.sitecrafting && com.sitecrafting.cumulus && com.sitecrafting.cumulus.core
+      && typeof (com.sitecrafting.cumulus.core.init) === 'function'
+    ) {
+      com.sitecrafting.cumulus.core.reload_config(CUMULUS_CONFIG);
+    }
+  }
+
   /**
    * Do a bunch of hack jQuery stuff to get the attachment data we need
    * and render the Edit Image Crops UI.
    */
   function _initCumulusCropsUi() {
-    var $customizeImageCropsBtn = $('.cumulus-edit-crops-btn');
-
-    // Check if the current Customize Image Crops button corresponds to the
-    // image currently being viewed in the modal
-    if ($customizeImageCropsBtn.length) {
-      // We're already done.
+    if (!$('.attachment-actions').length) {
       return;
     }
+    var $customizeImageCropsBtn = $('.cumulus-edit-crops-btn');
 
     $customizeImageCropsBtn = $('<button type="button"></button>')
       .addClass('button cumulus-edit-crops-btn')
       .text('<?= $data['customize_crops'] ?>');
-
-    var $actions = $('.attachment-actions').first();
 
     // Get the attachment ID from the URL
     if (location.search) {
@@ -59,7 +62,12 @@ jQuery(function($){
             CUMULUS_CONFIG.urls_by_size   = data.urls_by_size;
             CUMULUS_CONFIG.nonce          = data.nonce;
 
-            $actions.append($customizeImageCropsBtn);
+            _reloadConfig();
+
+            var $actions = $('.attachment-actions').first();
+            if ($actions.length && !$actions.find('.cumulus-edit-crops-btn').length) {
+              $actions.append($customizeImageCropsBtn);
+            }
           },
         });
       }
@@ -93,10 +101,19 @@ jQuery(function($){
   }
 
   var observer = new MutationObserver(function(mutationList, observer) {
-    if ($('.attachment-actions').length) {
-      // The DOM is now ready for use to inject our UI!
-      _initCumulusCropsUi();
-    }
+    // The DOM is now ready for use to inject our UI!
+    _initCumulusCropsUi();
+
+    $('.edit-media-header button').each(function() {
+      var $this = $(this);
+      if ($this.data('cumulusWatching')) {
+        return;
+      }
+      $(this).on('click', function() {
+        _initCumulusCropsUi();
+      });
+      $this.data('cumulusWatching', 1);
+    });
   });
 
   // TODO fall back on DOMNodeInserted?
