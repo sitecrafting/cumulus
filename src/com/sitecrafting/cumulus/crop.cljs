@@ -56,7 +56,7 @@
          params (get-in config [:params_by_size (keyword size_name)])
          mode (keyword (:edit_mode params))
          crop (:crop params)]
-     {:debug? (:WP_DEBUG config)
+     {:debug? (true? (:WP_DEBUG config))
       :nonce (:nonce config)
       :img-config config
       :current-size current-size
