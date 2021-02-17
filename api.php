@@ -100,6 +100,62 @@ function sizes() : array {
   );
 }
 
+/**
+ * Save a Cloudinary upload result to a specific attachment
+ *
+ * @param int $id the attachment ID
+ * @param array $result the Cloudinary upload result from the REST API, as an
+ * array
+ */
+function save_uploaded(int $id, array $result) : void {
+  if (!$result) {
+    return;
+  }
+
+  $registeredSizes = sizes();
+
+  $urlsBySize = array_reduce(array_keys($registeredSizes),
+    function($sizes, $size) use ($registeredSizes, $result) {
+      // Compute the scale (lfill) URL for this size.
+      $url = default_url(cloud_name(), $registeredSizes[$size], $result);
+
+      $url = apply_filters("cumulus/crop_url/$size", $url, [
+        'size'       => $size,
+        'dimensions' => $registeredSizes[$size],
+        'cloud_name' => cloud_name(),
+        'response'   => $result,
+      ]);
+
+      return array_merge($sizes, [
+        $size => $url,
+      ]);
+    }, []);
+
+  // Ensure we also serve the full URL from Cloudinary
+  $urlsBySize['full'] = $result['secure_url'];
+
+  $paramsBySize = array_reduce(array_keys($registeredSizes),
+    function($sizes, $size) use ($registeredSizes) {
+      return array_merge($sizes, [
+        $size => [
+          'edit_mode' => 'scale',
+        ],
+      ]);
+    }, []);
+
+  update_post_meta($id, 'cumulus_image', [
+    'cloudinary_id'   => $result['public_id'],
+    'urls_by_size'    => $urlsBySize,
+    'params_by_size'  => $paramsBySize,
+    'cloudinary_data' => $result,
+  ]);
+}
+
+/**
+ * Upload an attachment to Cloudinary by its ID
+ *
+ * @param int $id the ID of the attachment post to upload
+ */
 function upload_attachment(int $id) : void {
   $path = get_attached_file($id);
   if (!$path) {
@@ -127,43 +183,5 @@ function upload_attachment(int $id) : void {
     ]);
   }
 
-  if ($result) {
-    $result = (array) $result;
-    $registeredSizes = sizes();
-
-    // TODO farm most of this out to a filter
-    $urlsBySize = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes, $result) {
-      // Compute the scale (lfill) URL for this size.
-      $url = default_url(cloud_name(), $registeredSizes[$size], $result);
-
-      $url = apply_filters("cumulus/crop_url/$size", $url, [
-        'size'       => $size,
-        'dimensions' => $registeredSizes[$size],
-        'cloud_name' => cloud_name(),
-        'response'   => $result,
-      ]);
-
-      return array_merge($sizes, [
-        $size => $url,
-      ]);
-    }, []);
-
-    // Ensure we also serve the full URL from Cloudinary
-    $urlsBySize['full'] = $result['secure_url'];
-
-    $paramsBySize = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes) {
-      return array_merge($sizes, [
-        $size => [
-          'edit_mode' => 'scale',
-        ],
-      ]);
-    }, []);
-
-    update_post_meta($id, 'cumulus_image', [
-      'cloudinary_id'   => $result['public_id'],
-      'urls_by_size'    => $urlsBySize,
-      'params_by_size'  => $paramsBySize,
-      'cloudinary_data' => $result,
-    ]);
-  }
+  save_uploaded($id, (array) $result);
 }

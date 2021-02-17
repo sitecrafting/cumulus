@@ -217,11 +217,9 @@ add_action('rest_api_init', function() {
  * Upload to Cloudinary backend when a new Attachment is added.
  */
 add_action('add_attachment', function(int $id) {
-  if (!Cumulus\should_upload($id)) {
-    return;
+  if (Cumulus\should_upload($id)) {
+    Cumulus\upload_attachment($id);
   }
-
-  Cumulus\upload_attachment($id);
 }, 10);
 
 /**
