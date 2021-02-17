@@ -29,6 +29,8 @@ function settings() : array {
 
 /**
  * Get the currently configured Cloudinary Cloud Name setting.
+ *
+ * @return string
  */
 function cloud_name() : string {
   return apply_filters('cumulus/settings', [])['cloud_name'] ?? '';
@@ -36,6 +38,8 @@ function cloud_name() : string {
 
 /**
  * Get the currently configured Cloudinary API Key setting.
+ *
+ * @return string
  */
 function api_key() : string {
   return apply_filters('cumulus/settings', [])['api_key'] ?? '';
@@ -43,6 +47,8 @@ function api_key() : string {
 
 /**
  * Get the currently configured Cloudinary API Secret setting.
+ *
+ * @return string
  */
 function api_secret() : string {
   return apply_filters('cumulus/settings', [])['api_secret'] ?? '';
@@ -50,6 +56,8 @@ function api_secret() : string {
 
 /**
  * Get the currently configured Cloudinary Folder setting.
+ *
+ * @return string
  */
 function folder() : string {
   return apply_filters('cumulus/settings', [])['folder'] ?? '';
@@ -58,6 +66,8 @@ function folder() : string {
 /**
  * Whether Cumulus should upload the given attachment to Cloudinary,
  * based on current settings.
+ *
+ * @param int $id the attachment ID to check
  */
 function should_upload(int $id) : bool {
   $path = get_attached_file($id);
@@ -73,6 +83,15 @@ function should_upload(int $id) : bool {
   return in_array(mime_content_type($path), $supportedTypes);
 }
 
+/**
+ * Compute the default (auto-scaled) URL of an attachment for the given size
+ *
+ * @param string $cloud the cloud name of your Cloudinary account
+ * @param array $size the WP image size (array with width/height keys)
+ * @param array $img the uploaded image as returned from the Cloudinary REST
+ * API.
+ * @return string the computed URL
+ */
 function default_url(string $cloud, array $size, array $img) : string {
   $width  = $size['width'] ?? null;
   $height = $size['height'] ?? null;
@@ -92,6 +111,13 @@ function default_url(string $cloud, array $size, array $img) : string {
   );
 }
 
+/**
+ * Get the image sizes that are relevant to Cumulus, as an array keyed by
+ * size name (e.g. "thumbnail"); values are arrays as returned by
+ * wp_get_registered_image_subsizes().
+ *
+ * @return array
+ */
 function sizes() : array {
   $sizes = wp_get_registered_image_subsizes();
   return array_intersect_key(
