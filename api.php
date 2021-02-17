@@ -92,6 +92,14 @@ function default_url(string $cloud, array $size, array $img) : string {
   );
 }
 
+function sizes() : array {
+  $sizes = wp_get_registered_image_subsizes();
+  return array_intersect_key(
+    $sizes,
+    array_flip(apply_filters('cumulus/sizes', array_keys($sizes)))
+  );
+}
+
 function upload_attachment(int $id) : void {
   $path = get_attached_file($id);
   if (!$path) {
@@ -121,7 +129,7 @@ function upload_attachment(int $id) : void {
 
   if ($result) {
     $result = (array) $result;
-    $registeredSizes = wp_get_registered_image_subsizes();
+    $registeredSizes = sizes();
 
     // TODO farm most of this out to a filter
     $urlsBySize = array_reduce(array_keys($registeredSizes), function($sizes, $size) use ($registeredSizes, $result) {

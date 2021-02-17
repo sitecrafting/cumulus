@@ -30,4 +30,27 @@ class ApiTest extends IntegrationTest {
       Cumulus\default_url('my-cloud', $size, $result)
     );
   }
+
+  public function test_sizes() {
+    $this->assertEquals(wp_get_registered_image_subsizes(), Cumulus\sizes());
+  }
+
+  public function test_sizes_with_filter() {
+    $this->add_filter_temporarily('cumulus/sizes', function() {
+      return ['thumbnail', 'medium'];
+    });
+
+    $this->assertEquals([
+      'thumbnail' => [
+        'width'   => 150,
+        'height'  => 150,
+        'crop'    => true,
+      ],
+      'medium'    => [
+        'width'   => 300,
+        'height'  => 300,
+        'crop'    => false,
+      ],
+    ], Cumulus\sizes());
+  }
 }
