@@ -123,6 +123,10 @@ add_filter('cumulus/settings/defaults', function() {
  * @see https://developer.wordpress.org/reference/functions/add_image_size/
  */
 add_filter('wp_get_attachment_image_src', function($src, $id, $size) {
+  if (!$src) {
+    return $src;
+  }
+
   // Persist a mapping of attachment IDs to crop URLs, to save
   // database calls
   static $configsById;
