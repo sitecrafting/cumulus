@@ -12,7 +12,7 @@ namespace Cumulus\Integration;
 use SiteCrafting\Cumulus;
 
 /**
- * Stuff
+ * Test the main Cumulus API functions.
  */
 class ApiTest extends IntegrationTest {
   public function test_default_url() {
