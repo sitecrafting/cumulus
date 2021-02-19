@@ -22,7 +22,7 @@ Once downloaded and unzipped, place the extracted directory in `wp-content/plugi
 
 ### Via Composer
 
-
+TODO
 
 ## Usage
 

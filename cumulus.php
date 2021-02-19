@@ -139,6 +139,11 @@ add_filter('wp_get_attachment_image_src', function($src, $id, $size) {
     $configsById[$id] = get_post_meta($id, 'cumulus_image', true) ?: [];
   }
 
+  // Handle sizes expressed as [$width, $height] arrays.
+  if (is_array($size)) {
+    $size = sprintf('%sx%s', $size[0], $size[1]);
+  }
+
   // Render the customized crop src, if there is one for this size.
   $src[0] = $configsById[$id]['urls_by_size'][$size] ?? $src[0];
   // TODO remove
