@@ -51,6 +51,11 @@ function main() {
     --title="Heron" \
     --alt="Heron by Coby")
 
+  grasshopper_pdf=$(wp media import dev/img/grasshopper.pdf --porcelain \
+    --title="Grasshopper PDF" \
+    --alt="Grasshopper PDF by Coby" \
+    --caption="This should NOT have been uploaded due to its MIME type")
+
   wp post meta set $home_id test_image_1 $grasshopper
   wp post meta set $home_id test_image_2 $spider
   wp post meta set $home_id test_image_3 $heron

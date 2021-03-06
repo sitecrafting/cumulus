@@ -31,6 +31,14 @@ add_filter('cumulus/sizes', function() {
   ];
 });
 
+add_filter('cumulus/mime_types_to_upload', function() : array {
+  return [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+  ];
+});
+
 
 /**
  * Log stuff to wp-content/debug.log
