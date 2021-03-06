@@ -26,6 +26,7 @@ require_once __DIR__ . '/api.php';
 use Cloudinary\Configuration\Configuration;
 
 use SiteCrafting\Cumulus;
+use SiteCrafting\Cumulus\WpCli;
 
 
 define('CUMULUS_JS_DIR', __DIR__ . '/dist/js/');
@@ -312,3 +313,8 @@ add_action('admin_enqueue_scripts', function() {
   $css = CUMULUS_CSS_DIR . 'main.css';
   wp_enqueue_style('cumulus-css', plugin_dir_url(__FILE__) . 'dist/css/main.css', ['cropper-css'], filemtime($css));
 });
+
+if (defined('WP_CLI') && WP_CLI) {
+  require_once __DIR__ . '/wp-cli.php';
+  WP_CLI::add_command('cumulus bulk-upload', WpCli\bulk_upload::class);
+}
