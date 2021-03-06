@@ -112,6 +112,39 @@ function default_url(string $cloud, array $size, array $img) : string {
 }
 
 /**
+ * Compute a Retina URL of an attachment for the given size, at a given
+ * device-pixel ratio (DPR)
+ *
+ * @param string $cloud the cloud name of your Cloudinary account
+ * @param array $size the WP image size (array with width/height keys)
+ * @param array $img the uploaded image as returned from the Cloudinary REST
+ * API.
+ * @param int $ratio
+ * @return string the computed URL
+ */
+function retina_url(string $cloud, array $size, array $img, int $ratio) : string {
+  $width  = $size['width'] ?? null;
+  $height = $size['height'] ?? null;
+
+  $dpr = sprintf('dpr_%d', $ratio);
+
+  $resize = implode(',', array_filter([
+    ($width ? "w_{$width}" : ''),
+    ($height ? "h_{$height}" : ''),
+    'c_lfill',
+    $dpr,
+  ]));
+
+  return sprintf(
+    'https://res.cloudinary.com/%s/image/upload/%s/%s.%s',
+    $cloud,
+    $resize,
+    $img['public_id'],
+    $img['format']
+  );
+}
+
+/**
  * Get the image sizes that are relevant to Cumulus, as an array keyed by
  * size name (e.g. "thumbnail"); values are arrays as returned by
  * wp_get_registered_image_subsizes().

@@ -31,6 +31,30 @@ class ApiTest extends IntegrationTest {
     );
   }
 
+  public function test_retina_url() {
+    $result = [
+      'public_id' => 'test/cat',
+      'format'    => 'jpg',
+    ];
+    $size = [
+      'width'     => 150,
+      'height'    => 150,
+    ];
+
+    $this->assertEquals(
+      "https://res.cloudinary.com/my-cloud/image/upload/w_150,h_150,c_lfill,dpr_1/test/cat.jpg",
+      Cumulus\retina_url('my-cloud', $size, $result, 1)
+    );
+    $this->assertEquals(
+      "https://res.cloudinary.com/my-cloud/image/upload/w_150,h_150,c_lfill,dpr_2/test/cat.jpg",
+      Cumulus\retina_url('my-cloud', $size, $result, 2)
+    );
+    $this->assertEquals(
+      "https://res.cloudinary.com/my-cloud/image/upload/w_150,h_150,c_lfill,dpr_3/test/cat.jpg",
+      Cumulus\retina_url('my-cloud', $size, $result, 3)
+    );
+  }
+
   public function test_sizes() {
     $this->assertEquals(wp_get_registered_image_subsizes(), Cumulus\sizes());
   }

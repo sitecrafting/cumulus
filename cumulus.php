@@ -153,6 +153,50 @@ add_filter('wp_get_attachment_image_src', function($src, $id, $size) {
   return $src;
 }, 10, 3);
 
+/*
+ * Handle Retina Device Pixel Ratios automatically.
+ */
+add_filter('wp_calculate_image_srcset', function($sources, $size, $src, $meta, $id) {
+  $img_data = $meta['cumulus_image'] ?? [];
+  if (empty($img_data)) {
+    return $sources;
+  }
+
+  $ratios = apply_filters('cumulus/retina_dprs', [1, 2, 3]);
+  if (empty($ratios)) {
+    return $sources;
+  }
+
+  $cloud = Cumulus\cloud_name();
+  $size  = [
+    'width'  => $size[0],
+    'height' => $size[1],
+  ];
+
+  return array_map(function($ratio) use ($cloud, $size, $img_data) {
+    $url = Cumulus\retina_url(
+      $cloud,
+      $size,
+      $img_data['cloudinary_data'],
+      $ratio
+    );
+
+    return [
+      'url'        => $url,
+      'descriptor' => 'x',
+      'value'      => $ratio,
+    ];
+  }, $ratios);
+}, 10, 5);
+
+/**
+ * Include cumulus_image in default attachmenta metadata.
+ */
+add_filter('wp_get_attachment_metadata', function($meta, $id) {
+  $meta['cumulus_image'] = get_post_meta($id, 'cumulus_image', true) ?: [];
+  return $meta;
+}, 10, 2);
+
 
 add_action('rest_api_init', function() {
   /**
