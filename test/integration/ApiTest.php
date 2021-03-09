@@ -41,10 +41,12 @@ class ApiTest extends IntegrationTest {
       'height'    => 150,
     ];
 
+    // Don't set a DPR param for the default size.
     $this->assertEquals(
-      "https://res.cloudinary.com/my-cloud/image/upload/w_150,h_150,c_lfill,dpr_1/test/cat.jpg",
+      "https://res.cloudinary.com/my-cloud/image/upload/w_150,h_150,c_lfill/test/cat.jpg",
       Cumulus\retina_url('my-cloud', $size, $result, 1)
     );
+
     $this->assertEquals(
       "https://res.cloudinary.com/my-cloud/image/upload/w_150,h_150,c_lfill,dpr_2/test/cat.jpg",
       Cumulus\retina_url('my-cloud', $size, $result, 2)
@@ -52,6 +54,52 @@ class ApiTest extends IntegrationTest {
     $this->assertEquals(
       "https://res.cloudinary.com/my-cloud/image/upload/w_150,h_150,c_lfill,dpr_3/test/cat.jpg",
       Cumulus\retina_url('my-cloud', $size, $result, 3)
+    );
+  }
+
+  public function test_retina_srcset_no_data() {
+    $pid = $this->factory->post->create([
+      'post_type' => 'attachment',
+    ]);
+
+    $this->assertEquals('', Cumulus\retina_srcset($pid, 'thumbnail'));
+  }
+
+  public function test_retina_srcset_undefined_size() {
+    $pid = $this->factory->post->create([
+      'post_type' => 'attachment',
+    ]);
+    update_post_meta($pid, 'cumulus_image', [
+      'cloudinary_data' => [
+        'public_id' => 'test/cat',
+        'format'    => 'jpg',
+      ],
+    ]);
+
+    $this->assertEquals('', Cumulus\retina_srcset($pid, 'foobarqux'));
+  }
+
+  public function test_retina_srcset() {
+    $this->add_filter_temporarily('cumulus/settings', function() {
+      return [
+        'cloud_name' => 'my-cloud',
+      ];
+    });
+
+    $pid = $this->factory->post->create([
+      'post_type' => 'attachment',
+    ]);
+    update_post_meta($pid, 'cumulus_image', [
+      'cloudinary_data' => [
+        'public_id' => 'test/cat',
+        'format'    => 'jpg',
+      ],
+    ]);
+
+    $this->assertEquals(
+      "https://res.cloudinary.com/my-cloud/image/upload/w_150,h_150,c_lfill/test/cat.jpg 1x,"
+      . "https://res.cloudinary.com/my-cloud/image/upload/w_150,h_150,c_lfill,dpr_2/test/cat.jpg 2x",
+      Cumulus\retina_srcset($pid, 'thumbnail')
     );
   }
 

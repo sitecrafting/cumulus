@@ -1,2 +1,14 @@
 <h1>{{ post.title }}</h1>
+<h2>Featured Image</h2>
+<img
+  src="{{ post.thumbnail.src('large') }}"
+  srcset="{{ retina_srcset(post.thumbnail.meta('cumulus_image'), 'large') }}"
+  alt="{{ post.thumbnail.alt }}"
+/>
+<p>
+src: <code>{{ post.thumbnail.src('large') }}</code><br>
+srcset: <code>{{ retina_srcset(post.thumbnail.meta('cumulus_image'), 'large') }}</code>
+</p>
+
+<h2>Post Content</h2>
 <div>{{ post.content }}</div>

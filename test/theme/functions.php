@@ -4,6 +4,9 @@ require ABSPATH . '../vendor/autoload.php';
 
 use Symfony\Component\Dotenv\Dotenv;
 use Timber\Timber;
+use Twig\TwigFunction;
+
+use SiteCrafting\Cumulus;
 
 // Grab our Cumulus settings from .env as a backstop
 $dotenv = new Dotenv();
@@ -37,6 +40,13 @@ add_filter('cumulus/mime_types_to_upload', function() : array {
     'image/png',
     'image/gif',
   ];
+});
+
+add_theme_support('post-thumbnails');
+
+add_filter('timber/twig', function($twig) {
+  $twig->addFunction(new TwigFunction('retina_srcset', Cumulus\retina_srcset::class));
+  return $twig;
 });
 
 

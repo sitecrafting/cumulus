@@ -123,6 +123,10 @@ function default_url(string $cloud, array $size, array $img) : string {
  * @return string the computed URL
  */
 function retina_url(string $cloud, array $size, array $img, int $ratio) : string {
+  if ($ratio === 1) {
+    return default_url($cloud, $size, $img);
+  }
+
   $width  = $size['width'] ?? null;
   $height = $size['height'] ?? null;
 
@@ -142,6 +146,38 @@ function retina_url(string $cloud, array $size, array $img, int $ratio) : string
     $img['public_id'],
     $img['format']
   );
+}
+
+function retina_srcset($img, string $size) : string {
+  if (is_int($img)) {
+    $img = get_post_meta($img, 'cumulus_image', true) ?: [];
+  }
+
+  if (!is_array($img) || empty($img['cloudinary_data'])) {
+    return '';
+  }
+
+  $img_data = $img['cloudinary_data'];
+
+  $dimensions = sizes()[$size] ?? null;
+  if (empty($dimensions)) {
+    return '';
+  }
+
+  $cloud = cloud_name();
+
+  $srcset_sizes = array_map(
+    function($ratio) use ($cloud, $dimensions, $img_data) {
+      return sprintf(
+        '%s %dx',
+        retina_url($cloud, $dimensions, $img_data, $ratio),
+        $ratio
+      );
+    },
+    apply_filters('cumulus/retina_dprs', [1, 2])
+  );
+
+  return implode(',', $srcset_sizes);
 }
 
 /**

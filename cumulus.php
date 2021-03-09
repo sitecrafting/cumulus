@@ -162,7 +162,7 @@ add_filter('wp_calculate_image_srcset', function($sources, $size, $src, $meta, $
     return $sources;
   }
 
-  $ratios = apply_filters('cumulus/retina_dprs', [1, 2, 3]);
+  $ratios = apply_filters('cumulus/retina_dprs', [1, 2]);
   if (empty($ratios)) {
     return $sources;
   }
