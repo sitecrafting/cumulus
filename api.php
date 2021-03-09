@@ -11,6 +11,7 @@ namespace SiteCrafting\Cumulus;
 
 use Cloudinary\Api\Exception\ApiError;
 use Cloudinary\Api\Upload\UploadApi;
+use WP_Post;
 
 
 /**
@@ -151,6 +152,8 @@ function retina_url(string $cloud, array $size, array $img, int $ratio) : string
 function retina_srcset($img, string $size) : string {
   if (is_int($img)) {
     $img = get_post_meta($img, 'cumulus_image', true) ?: [];
+  } elseif ($img instanceof WP_Post) {
+    $img = get_post_meta($img->ID, 'cumulus_image', true) ?: [];
   }
 
   if (!is_array($img) || empty($img['cloudinary_data'])) {

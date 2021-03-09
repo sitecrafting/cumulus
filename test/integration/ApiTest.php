@@ -103,6 +103,49 @@ class ApiTest extends IntegrationTest {
     );
   }
 
+  public function test_retina_srcset_from_array() {
+    $this->add_filter_temporarily('cumulus/settings', function() {
+      return [
+        'cloud_name' => 'my-cloud',
+      ];
+    });
+
+    $this->assertEquals(
+      "https://res.cloudinary.com/my-cloud/image/upload/w_150,h_150,c_lfill/test/cat.jpg 1x,"
+      . "https://res.cloudinary.com/my-cloud/image/upload/w_150,h_150,c_lfill,dpr_2/test/cat.jpg 2x",
+      Cumulus\retina_srcset([
+        'cloudinary_data' => [
+          'public_id' => 'test/cat',
+          'format'    => 'jpg',
+        ],
+      ], 'thumbnail')
+    );
+  }
+
+  public function test_retina_srcset_from_post() {
+    $this->add_filter_temporarily('cumulus/settings', function() {
+      return [
+        'cloud_name' => 'my-cloud',
+      ];
+    });
+
+    $pid = $this->factory->post->create([
+      'post_type' => 'attachment',
+    ]);
+    update_post_meta($pid, 'cumulus_image', [
+      'cloudinary_data' => [
+        'public_id' => 'test/cat',
+        'format'    => 'jpg',
+      ],
+    ]);
+
+    $this->assertEquals(
+      "https://res.cloudinary.com/my-cloud/image/upload/w_150,h_150,c_lfill/test/cat.jpg 1x,"
+      . "https://res.cloudinary.com/my-cloud/image/upload/w_150,h_150,c_lfill,dpr_2/test/cat.jpg 2x",
+      Cumulus\retina_srcset(get_post($pid), 'thumbnail')
+    );
+  }
+
   public function test_sizes() {
     $this->assertEquals(wp_get_registered_image_subsizes(), Cumulus\sizes());
   }
