@@ -75,9 +75,10 @@ function bulk_upload(array $_args, array $opts = []) {
  */
 function get_bulk_upload_ids() : array {
   $query = new WP_Query([
-    'post_type'   => 'attachment',
-    'post_status' => 'any',
-    'fields'      => 'ids',
+    'post_type'      => 'attachment',
+    'post_status'    => 'any',
+    'posts_per_page' => -1,
+    'fields'         => 'ids',
   ]);
 
   return $query->posts ?: [];
