@@ -87,7 +87,7 @@ For now, there are a few ways to manage your Cumulus settings:
 
 Settings are resolved in that order so for example if the `CUMULUS_API_KEY` constant is defined, Cumulus does not consider the environment variable even if it is also set. By that same token, if the `cumulus_cloud_name` option is found in the database, neither the constant nor the environment variable are considered.
 
-### Known issues
+### Common issues
 
 #### Post-processing of the image failed...
 
