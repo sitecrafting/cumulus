@@ -87,6 +87,24 @@ For now, there are a few ways to manage your Cumulus settings:
 
 Settings are resolved in that order so for example if the `CUMULUS_API_KEY` constant is defined, Cumulus does not consider the environment variable even if it is also set. By that same token, if the `cumulus_cloud_name` option is found in the database, neither the constant nor the environment variable are considered.
 
+### Known issues
+
+#### Post-processing of the image failed...
+
+When setting up Cumulus, you may get an error like this:
+
+> Post-processing of the image failed likely because the server is busy or does not have enough resources. Uploading a smaller image may help.  Suggested maximum size is 2500 pixels
+
+This is actually sort of a catch-all for image upload errors. It can happen when Cumulus is configured with the wrong Cloudinary cloud name, API key, or API secret.
+
+You can double check all of these from the CLI with:
+
+```sh
+wp option get cumulus_cloud_name
+wp option get cumulus_api_key
+wp option get cumulus_api_secret
+```
+
 ## Actions and Filters
 
 **TODO**
@@ -170,11 +188,13 @@ yarn shadow watch test
 
 Then go to [http://localhost:8007/](http://localhost:8007/). It will run all tests whenever the ClojureScript compiler detects a change. You can even set it to alert you via desktop notifications.
 
-## REPL
+### REPL-driven development
 
 The Read-Eval Print Loop, or REPL, is an extremely useful dev tool and is the basis for "REPL-driven" development.
 
-If you have run `yarn dev` and are watching the `main` build, you can start a REPL straight from your editor with most IDEs. This guide will cover how to do so with VS Code
+If you have run `yarn dev` and are watching the `main` build, you can start a REPL straight from your editor with most IDEs. This guide will cover how to do so with VS Code.
+
+(TODO...)
 
 ## Release
 
@@ -211,4 +231,5 @@ If you have [`hub`](https://hub.github.com/) installed, it will also prompt you 
 * PHPUnit tests
 * Document hooks
 * Internationalization
+* Finish REPL guide
 * Submit to WordPress plugin repository
