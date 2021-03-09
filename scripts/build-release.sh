@@ -82,6 +82,7 @@ function main() {
     cumulus/dist \
     cumulus/cumulus.php \
     cumulus/api.php \
+    cumulus/wp-cli.php \
     cumulus/vendor \
     cumulus/views \
     cumulus/LICENSE.txt \
@@ -92,6 +93,7 @@ function main() {
     cumulus/dist \
     cumulus/cumulus.php \
     cumulus/api.php \
+    cumulus/wp-cli.php \
     cumulus/vendor \
     cumulus/views \
     cumulus/LICENSE.txt \
