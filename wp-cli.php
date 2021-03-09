@@ -23,6 +23,12 @@ use SiteCrafting\Cumulus;
  *
  * ## OPTIONS
  *
+ * [--count=<count>]
+ * : Limit the number of attachments uploaded.
+ * ---
+ * default: -1
+ * ---
+ *
  * [--force]
  * : Re-upload items even if they have a cloudinary_id.
  * ---
@@ -41,20 +47,40 @@ use SiteCrafting\Cumulus;
  * default: false
  * ---
  *
+ * [--summarize]
+ * : Print a count of uploaded files instead of each individual ID
+ * ---
+ * default: false
+ * ---
+ *
  * ## EXAMPLES
  *
  *     wp cumulus bulk-upload
+ *     wp cumulus bulk-upload --dry-run
+ *     wp cumulus bulk-upload --count=10
  *
  * @when after_wp_load
  */
 function bulk_upload(array $_args, array $opts = []) {
+  $count     = (int) Utils\get_flag_value($opts, 'count', -1);
   $force     = Utils\get_flag_value($opts, 'force', false);
   $dry_run   = Utils\get_flag_value($opts, 'dry-run', false);
   $porcelain = Utils\get_flag_value($opts, 'porcelain', false);
+  $summarize = Utils\get_flag_value($opts, 'summarize', false);
 
   $ids = array_filter(get_bulk_upload_ids(), function($id) use ($force) {
     return check_should_upload($id, $force);
   });
+
+  if ($count > -1 && $count < count($ids)) {
+    WP_CLI::debug(sprintf(
+      'Decreasing attachment count from %d to %d',
+      count($ids),
+      $count
+    ));
+    $ids = array_slice($ids, 0, $count);
+  }
+
   foreach ($ids as $id) {
     if (!$dry_run) {
       Cumulus\upload_attachment($id);
@@ -62,9 +88,13 @@ function bulk_upload(array $_args, array $opts = []) {
 
     if ($porcelain) {
       WP_CLI::log($id);
-    } else {
+    } elseif (!$summarize) {
       WP_CLI::success(sprintf('Uploaded attachment %d', $id));
     }
+  }
+
+  if ($summarize) {
+    WP_CLI::success(sprintf('Uploaded %d attachments', count($ids)));
   }
 }
 
