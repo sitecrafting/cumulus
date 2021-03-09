@@ -193,7 +193,12 @@ add_filter('wp_calculate_image_srcset', function($sources, $size, $src, $meta, $
  * Include cumulus_image in default attachmenta metadata.
  */
 add_filter('wp_get_attachment_metadata', function($meta, $id) {
+  if (!is_array($meta)) {
+    return $meta;
+  }
+
   $meta['cumulus_image'] = get_post_meta($id, 'cumulus_image', true) ?: [];
+
   return $meta;
 }, 10, 2);
 
