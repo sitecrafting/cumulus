@@ -68,17 +68,22 @@ function bulk_upload(array $_args, array $opts = []) {
   $porcelain = Utils\get_flag_value($opts, 'porcelain', false);
   $summarize = Utils\get_flag_value($opts, 'summarize', false);
 
-  $ids = array_filter(get_bulk_upload_ids(), function($id) use ($force) {
-    return check_should_upload($id, $force);
-  });
+  $queried_ids = get_bulk_upload_ids();
+  $ids         = [];
 
-  if ($count > -1 && $count < count($ids)) {
-    WP_CLI::debug(sprintf(
-      'Decreasing attachment count from %d to %d',
-      count($ids),
-      $count
-    ));
-    $ids = array_slice($ids, 0, $count);
+  foreach($queried_ids as $id) {
+    if (check_should_upload($id, $force)) {
+      $ids[] = $id;
+    }
+    if ($count > -1 && count($ids) >= $count) {
+      // We got what we needed
+      WP_CLI::debug(sprintf(
+        'Decreasing attachment count from %d to %d',
+        count($queried_ids),
+        $count
+      ));
+      break;
+    }
   }
 
   foreach ($ids as $id) {
