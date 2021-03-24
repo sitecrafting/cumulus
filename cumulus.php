@@ -366,4 +366,5 @@ add_action('admin_enqueue_scripts', function() {
 if (defined('WP_CLI') && WP_CLI) {
   require_once __DIR__ . '/wp-cli.php';
   WP_CLI::add_command('cumulus bulk-upload', WpCli\bulk_upload::class);
+  WP_CLI::add_command('cumulus regenerate', WpCli\regenerate::class);
 }

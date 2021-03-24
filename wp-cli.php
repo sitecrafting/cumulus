@@ -104,6 +104,110 @@ function bulk_upload(array $_args, array $opts = []) {
 }
 
 /**
+ * Regenerate Cloudinary URLs for every Media Library item with a cumulus_image
+ * meta entry.
+ *
+ * ## OPTIONS
+ *
+ * [--count=<count>]
+ * : Limit the number of attachments updated.
+ * ---
+ * default: -1
+ * ---
+ *
+ * [--dry-run]
+ * : Only list items that would be uploaded; do not perform actual uploads.
+ * ---
+ * default: false
+ * ---
+ *
+ * [--porcelain]
+ * : Print only IDs (for machine-readable output)
+ * ---
+ * default: false
+ * ---
+ *
+ * [--summarize]
+ * : Print a count of uploaded files instead of each individual ID
+ * ---
+ * default: false
+ * ---
+ *
+ * ## EXAMPLES
+ *
+ *     wp cumulus bulk-upload
+ *     wp cumulus bulk-upload --dry-run
+ *     wp cumulus bulk-upload --count=10
+ *
+ *     # This is a handy way to count the attachments with Cloudinary URLs:
+ *     wp cumulus bulk-upload --summarize --dry-run
+ *
+ * @when after_wp_load
+ */
+function regenerate(array $_args, array $opts) {
+  $count     = (int) Utils\get_flag_value($opts, 'count', -1);
+  $dry_run   = Utils\get_flag_value($opts, 'dry-run', false);
+  $porcelain = Utils\get_flag_value($opts, 'porcelain', false);
+  $summarize = Utils\get_flag_value($opts, 'summarize', false);
+
+  $ids = get_regenerate_ids();
+
+  if ($count > -1 && count($ids) >= $count) {
+    // We got what we needed
+    WP_CLI::debug(sprintf(
+      'Decreasing attachment count from %d to %d',
+      count($ids),
+      $count
+    ));
+    $ids = array_slice($ids, 0, $count);
+  }
+
+  foreach ($ids as $id) {
+    if (!$dry_run) {
+      $meta = get_post_meta($id, 'cumulus_image', true);
+      Cumulus\save_uploaded($id, $meta['cloudinary_data'] ?? []);
+    }
+
+    if ($porcelain) {
+      WP_CLI::log($id);
+    } elseif (!$summarize) {
+      WP_CLI::success(sprintf('Regenerated URLs for attachment %d', $id));
+    }
+  }
+
+  if ($summarize) {
+    WP_CLI::success(sprintf('Regenerated URLs for %d attachments', count($ids)));
+  }
+}
+
+
+
+/* HELPER FUNCTIONS */
+
+
+/**
+ * Get attachment IDs to regenerate URLs for.
+ *
+ * @internal
+ */
+function get_regenerate_ids() : array {
+  $query = new WP_Query([
+    'post_type'      => 'attachment',
+    'post_status'    => 'any',
+    'posts_per_page' => -1,
+    'fields'         => 'ids',
+    'meta_query'     => [
+      [
+        'compare'    => 'EXISTS',
+        'key'        => 'cumulus_image',
+      ],
+    ],
+  ]);
+
+  return $query->posts ?: [];
+}
+
+/**
  * Get attachment IDs to upload.
  *
  * @internal
