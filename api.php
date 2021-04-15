@@ -85,6 +85,20 @@ function should_upload(int $id) : bool {
 }
 
 /**
+ * Given an assoc array like ['x' => 123, 'y' => 456], returns a URL segment
+ * like "x_123,y_456". Ignores w and h values of zero, which are invalid.
+ * @internal
+ */
+function transform_segment(array $params) {
+  return implode(',', array_filter(array_map(function($k, $v) {
+    if (in_array($k, ['w', 'h', 'dpr']) && $v === 0) {
+      return '';
+    }
+    return sprintf('%s_%s', $k, $v);
+  }, array_keys($params), array_values($params))));
+}
+
+/**
  * Compute the default (auto-scaled) URL of an attachment for the given size
  *
  * @param string $cloud the cloud name of your Cloudinary account
@@ -113,40 +127,89 @@ function default_url(string $cloud, array $size, array $img) : string {
 }
 
 /**
+ * Compute the dynamic crop URL of an attachment with the given crop params
+ *
+ * @param string $cloud the cloud name of your Cloudinary account
+ * @param array $params an array of crop params, which should typically include:
+ * - crop - the x, y, w, and h values
+ * - target_size - an array in the form [width, height], to dictate the
+ *   secondary scale operation after the primay crop
+ * @param array $img the uploaded image as returned from the Cloudinary REST
+ * API.
+ * @return string the computed URL
+ */
+function crop_url(string $cloud, array $params, array $img) : string {
+  $crop = transform_segment(array_merge($params['crop'], [
+    'c' => 'crop',
+  ]));
+
+  $scale = transform_segment([
+    'w'   => $params['target_size'][0],
+    'h'   => $params['target_size'][1],
+    'c'   => 'scale',
+    'dpr' => $params['dpr'],
+  ]);
+
+  return sprintf(
+    'https://res.cloudinary.com/%s/image/upload/%s/%s/%s.%s',
+    $cloud,
+    $crop,
+    $scale,
+    $img['cloudinary_data']['public_id'],
+    $img['cloudinary_data']['format']
+  );
+}
+
+function scale_url(string $cloud, array $params, array $img) : string {
+  $scale = transform_segment([
+    'w'   => $params['target_size'][0],
+    'h'   => $params['target_size'][1],
+    'c'   => 'lfill',
+    'dpr' => $params['dpr'] ?? 0,
+  ]);
+
+  return sprintf(
+    'https://res.cloudinary.com/%s/image/upload/%s/%s.%s',
+    $cloud,
+    $scale,
+    $img['cloudinary_data']['public_id'],
+    $img['cloudinary_data']['format']
+  );
+}
+
+/**
  * Compute a Retina URL of an attachment for the given size, at a given
  * device-pixel ratio (DPR)
  *
  * @param string $cloud the cloud name of your Cloudinary account
- * @param array $size the WP image size (array with width/height keys)
+ * @param array $size the WP image size name
  * @param array $img the uploaded image as returned from the Cloudinary REST
  * API.
  * @param int $ratio
  * @return string the computed URL
  */
-function retina_url(string $cloud, array $size, array $img, int $ratio) : string {
-  if ($ratio === 1) {
-    return default_url($cloud, $size, $img);
+function retina_url(string $cloud, string $size, array $img, int $ratio) : string {
+  $dimensions = sizes()[$size] ?? null;
+  if (empty($dimensions)) {
+    return '';
   }
 
-  $width  = $size['width'] ?? null;
-  $height = $size['height'] ?? null;
+  $params = $img['params_by_size'][$size] ?? [];
+  if (empty($params)) {
+    // TODO default_url() ?
+  }
 
-  $dpr = sprintf('dpr_%d', $ratio);
+  // Ratio of 1 is a no-op; don't bother with a dpr_ param in that case.
+  $dpr = $ratio === 1 ? 0 : $ratio;
 
-  $resize = implode(',', array_filter([
-    ($width ? "w_{$width}" : ''),
-    ($height ? "h_{$height}" : ''),
-    'c_lfill',
-    $dpr,
-  ]));
+  $params = array_merge($params, [
+    'target_size' => [$dimensions['width'] ?? 0, $dimensions['height'] ?? 0],
+    'dpr'         => $dpr,
+  ]);
 
-  return sprintf(
-    'https://res.cloudinary.com/%s/image/upload/%s/%s.%s',
-    $cloud,
-    $resize,
-    $img['public_id'],
-    $img['format']
-  );
+  return $params['edit_mode'] === 'crop'
+    ? crop_url($cloud, $params, $img)
+    : scale_url($cloud, $params, $img);
 }
 
 function retina_srcset($img, string $size) : string {
@@ -160,20 +223,18 @@ function retina_srcset($img, string $size) : string {
     return '';
   }
 
-  $img_data = $img['cloudinary_data'];
-
-  $dimensions = sizes()[$size] ?? null;
-  if (empty($dimensions)) {
+  if (!isset(sizes()[$size]) || !isset($img['params_by_size'][$size])) {
+    // We don't have enough information to compute this srcset.
     return '';
   }
 
   $cloud = cloud_name();
 
   $srcset_sizes = array_map(
-    function($ratio) use ($cloud, $dimensions, $img_data) {
+    function($ratio) use ($cloud, $size, $img) {
       return sprintf(
         '%s %dx',
-        retina_url($cloud, $dimensions, $img_data, $ratio),
+        retina_url($cloud, $size, $img, $ratio),
         $ratio
       );
     },
