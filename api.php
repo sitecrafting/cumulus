@@ -182,21 +182,31 @@ function scale_url(string $cloud, array $params, array $img) : string {
  * device-pixel ratio (DPR)
  *
  * @param string $cloud the cloud name of your Cloudinary account
- * @param array $size the WP image size name
+ * @param string|array $size the WP image size name as a string, or an array
+ * with "width" and "height" indices. If passed an array, assumes an edit_mode
+ * of "scale".
  * @param array $img the uploaded image as returned from the Cloudinary REST
  * API.
  * @param int $ratio
  * @return string the computed URL
  */
-function retina_url(string $cloud, string $size, array $img, int $ratio) : string {
-  $dimensions = sizes()[$size] ?? null;
-  if (empty($dimensions)) {
-    return '';
-  }
+function retina_url(string $cloud, $size, array $img, int $ratio) : string {
+  if (is_string($size)) {
+    // Look up dimensions by size name.
+    $dimensions = sizes()[$size] ?? null;
+    if (empty($dimensions)) {
+      return '';
+    }
 
-  $params = $img['params_by_size'][$size] ?? [];
-  if (empty($params)) {
-    // TODO default_url() ?
+    $params = $img['params_by_size'][$size] ?? [];
+
+  } elseif (is_array($size)) {
+
+    $dimensions = $size;
+    $params     = [
+      'edit_mode' => 'scale',
+    ];
+
   }
 
   // Ratio of 1 is a no-op; don't bother with a dpr_ param in that case.

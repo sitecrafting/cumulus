@@ -60,6 +60,25 @@ class ApiTest extends IntegrationTest {
     );
   }
 
+  public function test_retina_url_with_array_size() {
+    $img = [
+      'cloudinary_data' => [
+        'public_id'     => 'test/cat',
+        'format'        => 'jpg',
+      ],
+    ];
+
+    $size = [
+      'width'  => 500,
+      'height' => 300,
+    ];
+
+    $this->assertEquals(
+      "https://res.cloudinary.com/my-cloud/image/upload/w_500,h_300,c_lfill,dpr_2/test/cat.jpg",
+      Cumulus\retina_url('my-cloud', $size, $img, 2)
+    );
+  }
+
   public function test_retina_srcset_no_data() {
     $pid = $this->factory->post->create([
       'post_type' => 'attachment',
