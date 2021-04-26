@@ -85,4 +85,51 @@ class UrlTest extends IntegrationTest {
       )
     );
   }
+
+  public function test_srcset() {
+    $this->add_filter_temporarily('cumulus/settings', function() {
+      return [
+        'cloud_name' => 'my-cloud',
+      ];
+    });
+
+    $id = $this->factory->post->create([
+      'post_type' => 'attachment',
+    ]);
+
+    $cumulus_img = [
+      'params_by_size' => [
+        '900x901'    => 'https://res.cloudinary.com/test/w_900,h_901/image.jpg',
+        'full'       => 'https://res.cloudinary.com/test/image.jpg',
+      ],
+      'cloudinary_data' => [
+        'public_id' => 'test/image',
+        'format' => 'jpg',
+      ],
+    ];
+    add_post_meta($id, 'cumulus_image', $cumulus_img);
+
+    // Under normal circumstances, $sources gets overridden and rebuilt from
+    // scratch to use the `x` descriptor, for Retina URLs.
+    $sources = [];
+
+    $size = [1024, 682];
+    $src  = 'https://example.com/image-1024x682.jpg';
+    $meta = [
+      'cumulus_image' => $cumulus_img,
+    ];
+
+    $this->assertEquals([
+      [
+        'url'        => 'https://res.cloudinary.com/my-cloud/image/upload/w_1024,h_682,c_lfill/test/image.jpg',
+        'descriptor' => 'x',
+        'value'      => 1,
+      ],
+      [
+        'url'        => 'https://res.cloudinary.com/my-cloud/image/upload/w_1024,h_682,c_lfill,dpr_2/test/image.jpg',
+        'descriptor' => 'x',
+        'value'      => 2,
+      ]
+    ], apply_filters('wp_calculate_image_srcset', $sources, $size, $src, $meta, $id));
+  }
 }
