@@ -177,7 +177,7 @@ add_filter('wp_calculate_image_srcset', function($sources, $size, $src, $meta, $
     $url = Cumulus\retina_url(
       $cloud,
       $size,
-      $img_data['cloudinary_data'],
+      $img_data,
       $ratio
     );
 
