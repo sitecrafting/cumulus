@@ -11,13 +11,13 @@
         }
     ],
     "require": {
-        "cloudinary/cloudinary_php": "2.0.0-beta6",
-        "wpackagist-plugin/advanced-custom-fields": "^5.9"
+        "cloudinary/cloudinary_php": "^2",
+        "wpackagist-plugin/advanced-custom-fields": "^6"
     },
     "require-dev": {
-        "phpunit/phpunit": "^7.0",
+        "phpunit/phpunit": "^8.0",
         "symfony/dotenv": "^5.2",
-        "timber/timber": "^2.0"
+        "timber/timber": "^2"
     },
     "autoload-dev": {
         "psr-4": {
